@@ -475,6 +475,23 @@ tbody tr:hover { background: #f8f8f4; }
     padding: 0;
     z-index: 200;
   }
+  /* Header mobile */
+  .mobile-header {
+    display: flex;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: var(--verde-scuro);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 150;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 68px 12px 80px;
+  }
   /* Fix calendario celle fisse */
   .calendario-grid {
     grid-template-columns: repeat(7, 1fr);
@@ -535,7 +552,9 @@ tbody tr:hover { background: #f8f8f4; }
     padding: 16px 12px;
     padding-bottom: 80px;
   }
-
+  .mobile-header {
+    display: none;
+  }
   /* Griglia stats 2 colonne */
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 
