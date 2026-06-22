@@ -35,6 +35,11 @@ h1, h2, h3, .titolo-sezione {
   min-height: 100vh;
 }
 
+/* Header mobile — nascosto su desktop */
+.mobile-header {
+  display: none;
+}
+
 /* Sidebar */
 .sidebar {
   width: 220px;
@@ -262,34 +267,16 @@ tbody tr:hover { background: #f8f8f4; }
   text-decoration: none;
 }
 
-.btn-primario {
-  background: var(--verde);
-  color: white;
-}
+.btn-primario { background: var(--verde); color: white; }
 .btn-primario:hover { background: var(--verde-scuro); }
-
-.btn-oro {
-  background: var(--oro);
-  color: white;
-}
+.btn-oro { background: var(--oro); color: white; }
 .btn-oro:hover { background: #b8891a; }
-
-.btn-outline {
-  background: transparent;
-  border: 1.5px solid var(--grigio-chiaro);
-  color: var(--testo);
-}
+.btn-outline { background: transparent; border: 1.5px solid var(--grigio-chiaro); color: var(--testo); }
 .btn-outline:hover { border-color: var(--verde); color: var(--verde); }
-
-.btn-danger {
-  background: var(--rosso);
-  color: white;
-}
+.btn-danger { background: var(--rosso); color: white; }
 
 /* Form */
-.form-group {
-  margin-bottom: 18px;
-}
+.form-group { margin-bottom: 18px; }
 
 .form-group label {
   display: block;
@@ -322,20 +309,10 @@ tbody tr:hover { background: #f8f8f4; }
   border-color: var(--verde);
 }
 
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
 /* Alert */
-.alert {
-  padding: 12px 16px;
-  border-radius: var(--radius);
-  font-size: 14px;
-  margin-bottom: 16px;
-}
-
+.alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; }
 .alert-warning { background: #fff3cd; color: #856404; border-left: 4px solid var(--oro); }
 .alert-danger  { background: #f8d7da; color: #721c24; border-left: 4px solid var(--rosso); }
 .alert-success { background: #d4edda; color: #155724; border-left: 4px solid var(--verde); }
@@ -369,19 +346,8 @@ tbody tr:hover { background: #f8f8f4; }
   margin-bottom: 24px;
 }
 
-.modal-header h3 {
-  font-size: 24px;
-  color: var(--verde-scuro);
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--grigio);
-  line-height: 1;
-}
+.modal-header h3 { font-size: 24px; color: var(--verde-scuro); }
+.modal-close { background: none; border: none; font-size: 24px; cursor: pointer; color: var(--grigio); line-height: 1; }
 
 /* Login */
 .login-page {
@@ -401,17 +367,8 @@ tbody tr:hover { background: #f8f8f4; }
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
 }
 
-.login-card h1 {
-  font-size: 36px;
-  color: var(--verde-scuro);
-  margin-bottom: 4px;
-}
-
-.login-card .sottotitolo {
-  color: var(--grigio);
-  font-size: 14px;
-  margin-bottom: 32px;
-}
+.login-card h1 { font-size: 36px; color: var(--verde-scuro); margin-bottom: 4px; }
+.login-card .sottotitolo { color: var(--grigio); font-size: 14px; margin-bottom: 32px; }
 
 /* Calendario */
 .calendario-grid {
@@ -438,14 +395,9 @@ tbody tr:hover { background: #f8f8f4; }
   font-size: 12px;
 }
 
-.cal-giorno.oggi { border-color: var(--verde); background: #f0f8f3; }
+.cal-giorno.oggi { border-color: var(--verde); background: #fff5f5; }
 .cal-giorno.altro-mese { background: var(--sfondo); }
-
-.cal-numero {
-  font-weight: 700;
-  font-size: 14px;
-  margin-bottom: 4px;
-}
+.cal-numero { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 
 .cal-evento {
   font-size: 11px;
@@ -462,11 +414,29 @@ tbody tr:hover { background: #f8f8f4; }
 .cal-evento.scadenza   { background: #f8d7da; color: #721c24; }
 .cal-evento.riunione   { background: #fef3cd; color: #856404; }
 
-/* Responsive mobile */
+/* ============================================================
+   RESPONSIVE MOBILE
+   ============================================================ */
 @media (max-width: 768px) {
+
+  /* Header mobile visibile */
+  .mobile-header {
+    display: flex !important;
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 52px;
+    background: var(--verde-scuro);
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 300;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* Sidebar in basso */
   .sidebar {
     width: 100%;
-    height: 64px;
+    height: 60px;
     top: auto;
     bottom: 0;
     left: 0;
@@ -475,48 +445,9 @@ tbody tr:hover { background: #f8f8f4; }
     padding: 0;
     z-index: 200;
   }
-  /* Header mobile */
-  .mobile-header {
-    display: flex;
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 52px;
-    background: var(--verde-scuro);
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    z-index: 150;
-  }
-
-  .main-content {
-    margin-left: 0;
-    padding: 68px 12px 80px;
-  }
-  /* Fix calendario celle fisse */
-  .calendario-grid {
-    grid-template-columns: repeat(7, 1fr);
-    gap: 2px;
-  }
-
-  .cal-giorno {
-    min-height: 56px;
-    max-height: 56px;
-    padding: 4px 2px;
-    overflow: hidden;
-    width: 100%;
-  }
-
-  .cal-evento {
-    font-size: 8px;
-    padding: 1px 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    display: block;
-  }
 
   .sidebar-logo { display: none; }
+  .sidebar-footer { display: none; }
 
   .sidebar-nav {
     flex-direction: row;
@@ -528,7 +459,7 @@ tbody tr:hover { background: #f8f8f4; }
 
   .nav-link {
     flex-direction: column;
-    padding: 8px 4px;
+    padding: 6px 4px;
     font-size: 10px;
     gap: 2px;
     border-left: none;
@@ -544,63 +475,73 @@ tbody tr:hover { background: #f8f8f4; }
     background: rgba(255,255,255,0.1);
   }
 
-  .nav-icon { font-size: 22px; }
-  .sidebar-footer { display: none; }
+  .nav-icon { font-size: 20px; }
 
+  /* Contenuto con spazio per header e footer */
   .main-content {
     margin-left: 0;
-    padding: 16px 12px;
-    padding-bottom: 80px;
+    padding: 64px 12px 72px;
+    max-width: 100%;
   }
-  .mobile-header {
-    display: none;
-  }
-  /* Griglia stats 2 colonne */
+
+  /* Stats 2 colonne */
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-valore { font-size: 28px; }
+  .stat-valore.euro::before { font-size: 16px; }
 
   /* Card */
-  .card { padding: 16px; }
+  .card { padding: 14px; }
 
   /* Header pagina */
-  .page-header { flex-direction: column; gap: 10px; }
+  .page-header { flex-direction: column !important; gap: 10px; margin-bottom: 16px; }
   .page-header h2 { font-size: 24px; }
-
-  /* Bottoni header full width */
   .page-header .btn { width: 100%; justify-content: center; }
-
-  /* Tabelle scorrevoli */
-  .tabella-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { min-width: 500px; }
 
   /* Form */
   .form-row { grid-template-columns: 1fr; }
 
-  /* Modal full screen */
+  /* Tabelle */
+  .tabella-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  table { min-width: 480px; }
+
+  /* Modal dal basso */
   .modal-overlay { align-items: flex-end; }
   .modal {
     border-radius: 16px 16px 0 0;
-    max-height: 92vh;
+    max-height: 88vh;
     width: 100%;
-    padding: 24px 20px;
+    padding: 20px 16px;
   }
 
   /* Calendario */
-  .calendario-grid { gap: 2px; }
-  .cal-giorno { min-height: 56px; padding: 4px; font-size: 11px; }
-  .cal-numero { font-size: 12px; }
-  .cal-evento { font-size: 9px; padding: 1px 3px; }
+  .calendario-grid { grid-template-columns: repeat(7, 1fr); gap: 2px; }
   .cal-header-giorno { font-size: 9px; padding: 4px 0; }
+  .cal-giorno {
+    min-height: 52px;
+    max-height: 52px;
+    padding: 3px 2px;
+    overflow: hidden;
+  }
+  .cal-numero { font-size: 11px; margin-bottom: 2px; }
+  .cal-evento {
+    font-size: 8px;
+    padding: 1px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+  }
 
-  /* Shop griglia */
+  /* Shop */
   .shop-grid { grid-template-columns: 1fr !important; }
 
-  /* Stat card */
-  .stat-valore { font-size: 28px; }
-  .stat-valore.euro::before { font-size: 16px; }
-
   /* Login */
-  .login-card { padding: 32px 24px; margin: 16px; }
+  .login-card { padding: 28px 20px; margin: 12px; }
 
-  /* Nascondi colonne tabella meno importanti su mobile */
-  .hide-mobile { display: none; }
+  /* Dashboard grid 1 colonna */
+  .dashboard-grid { grid-template-columns: 1fr !important; }
+
+  /* Nascondi su mobile */
+  .hide-mobile { display: none !important; }
 }
