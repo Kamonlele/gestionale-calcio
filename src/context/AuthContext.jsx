@@ -47,11 +47,18 @@ export function AuthProvider({ children }) {
   const approvato = profilo?.approvato ?? false
   const isAdmin = ruolo === 'admin'
   const isCassiere = ruolo === 'cassiere' || isAdmin
-  const isDirigente = ruolo === 'dirigente' || ruolo === 'cassiere' || isAdmin
-  const puoVedereFinanze = ruolo === 'cassiere' || ruolo === 'dirigente' || isAdmin
+  const isDirigente = ruolo === 'dirigente' || isAdmin
+  const isPresidente = ruolo === 'presidente' || isAdmin
+  const puoModificareGiocatori = ruolo === 'presidente' || ruolo === 'cassiere' || isAdmin
+  const puoModificareCalendario = ruolo === 'dirigente' || ruolo === 'presidente' || ruolo === 'cassiere' || isAdmin
+  const puoVedereFinanze = ruolo === 'cassiere' || ruolo === 'dirigente' || ruolo === 'presidente' || isAdmin
 
   return (
-    <AuthContext.Provider value={{ utente, profilo, loading, login, logout, ruolo, approvato, isAdmin, isCassiere, isDirigente, puoVedereFinanze }}>
+    <AuthContext.Provider value={{
+      utente, profilo, loading, login, logout, ruolo, approvato,
+      isAdmin, isCassiere, isDirigente, isPresidente,
+      puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze
+    }}>
       {children}
     </AuthContext.Provider>
   )

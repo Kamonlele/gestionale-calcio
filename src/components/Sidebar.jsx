@@ -2,11 +2,10 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
-  const { profilo, logout, isAdmin, isCassiere, isDirigente, puoVedereFinanze } = useAuth()
+  const { profilo, logout, isAdmin, puoVedereFinanze } = useAuth()
 
   return (
     <>
-      {/* Header mobile con logout */}
       <div className="mobile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <img src="/logo.png" alt="D47" style={{ width: 32, height: 32, objectFit: 'contain' }} />

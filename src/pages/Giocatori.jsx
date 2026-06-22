@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { format, parseISO } from 'date-fns'
 
 export default function Giocatori() {
-  const { isAdmin, isDirigente } = useAuth()
+  const { isAdmin, puoModificareGiocatori, profilo: profiloCorrente, ruolo } = useAuth()
   const [giocatori, setGiocatori] = useState([])
   const [loading, setLoading] = useState(true)
   const [mostraModal, setMostraModal] = useState(false)
@@ -33,7 +33,12 @@ export default function Giocatori() {
     setMostraModal(true)
   }
 
-  const filtrati = giocatori.filter(g =>
+  // Giocatore vede solo sé stesso, gli altri vedono tutti
+  const visibili = ruolo === 'giocatore'
+    ? giocatori.filter(g => g.id === profiloCorrente?.id)
+    : giocatori
+
+  const filtrati = visibili.filter(g =>
     `${g.nome} ${g.cognome} ${g.ruolo_campo || ''}`.toLowerCase().includes(filtro.toLowerCase())
   )
 
@@ -60,22 +65,24 @@ export default function Giocatori() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <h2>👥 Giocatori</h2>
-          <p>{giocatori.length} giocatori registrati</p>
+          <p>{ruolo === 'giocatore' ? 'Il tuo profilo' : `${visibili.length} giocatori registrati`}</p>
         </div>
-        {(isAdmin || isDirigente) && (
+        {puoModificareGiocatori && (
           <button className="btn btn-primario" onClick={apriNuovo}>+ Aggiungi giocatore</button>
         )}
       </div>
 
-      <div className="card" style={{ marginBottom: 16, padding: '14px 20px' }}>
-        <input
-          type="text"
-          placeholder="🔍 Cerca per nome, cognome o ruolo..."
-          value={filtro}
-          onChange={e => setFiltro(e.target.value)}
-          style={{ border: 'none', outline: 'none', width: '100%', fontSize: 15 }}
-        />
-      </div>
+      {ruolo !== 'giocatore' && (
+        <div className="card" style={{ marginBottom: 16, padding: '14px 20px' }}>
+          <input
+            type="text"
+            placeholder="🔍 Cerca per nome, cognome o ruolo..."
+            value={filtro}
+            onChange={e => setFiltro(e.target.value)}
+            style={{ border: 'none', outline: 'none', width: '100%', fontSize: 15 }}
+          />
+        </div>
+      )}
 
       <div className="card" style={{ padding: 0 }}>
         <div className="tabella-wrapper">
@@ -88,7 +95,7 @@ export default function Giocatori() {
                 <th>Data nascita</th>
                 <th>Telefono</th>
                 <th>Cert. medico</th>
-                {(isAdmin || isDirigente) && <th>Azioni</th>}
+                {puoModificareGiocatori && <th>Azioni</th>}
               </tr>
             </thead>
             <tbody>
@@ -115,7 +122,7 @@ export default function Giocatori() {
                       ● {certLabel(g)}
                     </span>
                   </td>
-                  {(isAdmin || isDirigente) && (
+                  {puoModificareGiocatori && (
                     <td>
                       <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => apriModifica(g)}>
                         Modifica
@@ -161,14 +168,11 @@ function ModalGiocatore({ giocatore, onClose, onSalva }) {
     setErrore('')
 
     if (isNuovo) {
-      // Crea utente via Supabase Auth (richiede service role — da fare via admin)
-      // Per semplicità, creiamo solo il profilo con inserimento diretto
       const { error } = await supabase.auth.admin?.createUser?.({
         email: form.email, password, email_confirm: true,
         user_metadata: { nome: form.nome, cognome: form.cognome, ruolo: form.ruolo }
       })
       if (error) {
-        // Fallback: inserimento manuale del profilo (l'utente dovrà registrarsi)
         setErrore('Per creare nuovi utenti usa la sezione Amministrazione. Il giocatore dovrà registrarsi con questa email.')
         setSaving(false)
         return
@@ -257,6 +261,7 @@ function ModalGiocatore({ giocatore, onClose, onSalva }) {
           <select value={form.ruolo} onChange={e => setForm({...form, ruolo: e.target.value})}>
             <option value="giocatore">Giocatore</option>
             <option value="dirigente">Dirigente</option>
+            <option value="presidente">Presidente</option>
             <option value="cassiere">Cassiere</option>
             <option value="admin">Admin</option>
           </select>

@@ -14,7 +14,7 @@ export default function Admin() {
 
   async function caricaUtenti() {
     const { data } = await supabase
-      .from('profili') 
+      .from('profili')
       .select('*, certificati_medici(*)')
       .order('cognome')
     setUtenti(data || [])
@@ -52,7 +52,6 @@ export default function Admin() {
         <p>Gestione utenti e certificati medici</p>
       </div>
 
-      {/* Stats */}
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {[
@@ -69,7 +68,6 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Sezione in attesa di approvazione */}
       {inAttesa.length > 0 && (
         <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--oro)' }}>
           <h3 style={{ fontSize: 20, color: 'var(--oro)', marginBottom: 16 }}>
@@ -83,18 +81,10 @@ export default function Admin() {
                   <div style={{ fontSize: 12, color: 'var(--grigio)' }}>{u.email}</div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    className="btn btn-primario"
-                    style={{ padding: '6px 16px', fontSize: 13, background: 'var(--oro)' }}
-                    onClick={() => approvaUtente(u.id)}
-                  >
+                  <button className="btn btn-primario" style={{ padding: '6px 16px', fontSize: 13, background: 'var(--oro)' }} onClick={() => approvaUtente(u.id)}>
                     ✓ Approva
                   </button>
-                  <button
-                    className="btn btn-outline"
-                    style={{ padding: '6px 12px', fontSize: 13, color: 'var(--rosso)' }}
-                    onClick={() => toggleAttivo(u.id, true)}
-                  >
+                  <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: 13, color: 'var(--rosso)' }} onClick={() => toggleAttivo(u.id, true)}>
                     ✗ Rifiuta
                   </button>
                 </div>
@@ -104,7 +94,6 @@ export default function Admin() {
         </div>
       )}
 
-      {/* Tabella tutti gli utenti */}
       <div className="card" style={{ padding: 0 }}>
         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--grigio-chiaro)' }}>
           <h3 style={{ fontSize: 20, color: 'var(--verde-scuro)' }}>Tutti gli utenti</h3>
@@ -140,6 +129,7 @@ export default function Admin() {
                       >
                         <option value="giocatore">giocatore</option>
                         <option value="dirigente">dirigente</option>
+                        <option value="presidente">presidente</option>
                         <option value="cassiere">cassiere</option>
                         <option value="admin">admin</option>
                       </select>
@@ -221,7 +211,6 @@ function ModalCertificato({ giocatore, onClose, onSalva }) {
           <h3>Certificato medico — {giocatore.nome} {giocatore.cognome}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
-
         <div className="form-row">
           <div className="form-group">
             <label>Data rilascio</label>
@@ -232,7 +221,6 @@ function ModalCertificato({ giocatore, onClose, onSalva }) {
             <input type="date" value={form.data_scadenza} onChange={e => setForm({...form, data_scadenza: e.target.value})} />
           </div>
         </div>
-
         <div className="form-group">
           <label>Tipo</label>
           <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}>
@@ -240,12 +228,10 @@ function ModalCertificato({ giocatore, onClose, onSalva }) {
             <option value="non_agonistico">Non agonistico</option>
           </select>
         </div>
-
         <div className="form-group">
           <label>Note</label>
           <textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})} rows={2} />
         </div>
-
         <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
           <button className="btn btn-outline" onClick={onClose}>Annulla</button>
           <button className="btn btn-primario" onClick={salva} disabled={saving}>

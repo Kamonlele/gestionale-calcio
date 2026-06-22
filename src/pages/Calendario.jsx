@@ -10,7 +10,7 @@ import { it } from 'date-fns/locale'
 const GIORNI = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
 
 export default function Calendario() {
-  const { isDirigente } = useAuth()
+  const { puoModificareCalendario } = useAuth()
   const [meseCorrente, setMeseCorrente] = useState(new Date())
   const [eventi, setEventi] = useState([])
   const [eventoSelezionato, setEventoSelezionato] = useState(null)
@@ -33,7 +33,6 @@ export default function Calendario() {
     return eventi.filter(e => isSameDay(parseISO(e.data_inizio), giorno))
   }
 
-  // Genera griglia giorni del mese
   function generaGiorni() {
     const start = startOfWeek(startOfMonth(meseCorrente), { weekStartsOn: 1 })
     const end = endOfWeek(endOfMonth(meseCorrente), { weekStartsOn: 1 })
@@ -67,28 +66,25 @@ export default function Calendario() {
           <h2>📅 Calendario</h2>
           <p>Partite, allenamenti e scadenze</p>
         </div>
-        {isDirigente && (
+        {puoModificareCalendario && (
           <button className="btn btn-primario" onClick={apriNuovo}>+ Aggiungi evento</button>
         )}
       </div>
 
-      {/* Navigazione mese */}
       <div className="card" style={{ padding: '16px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <button className="btn btn-outline" onClick={() => setMeseCorrente(subMonths(meseCorrente, 1))}>← </button>
+        <button className="btn btn-outline" onClick={() => setMeseCorrente(subMonths(meseCorrente, 1))}>←</button>
         <h3 style={{ fontSize: 24, color: 'var(--verde-scuro)', textTransform: 'capitalize' }}>
           {format(meseCorrente, 'MMMM yyyy', { locale: it })}
         </h3>
-        <button className="btn btn-outline" onClick={() => setMeseCorrente(addMonths(meseCorrente, 1))}> →</button>
+        <button className="btn btn-outline" onClick={() => setMeseCorrente(addMonths(meseCorrente, 1))}>→</button>
       </div>
 
-      {/* Legenda */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
         {[['partita','⚽ Partita'],['allenamento','🏃 Allenamento'],['riunione','📋 Riunione'],['scadenza','⚠️ Scadenza']].map(([t, l]) => (
           <span key={t} className={`cal-evento ${t}`} style={{ padding: '4px 10px', borderRadius: 6 }}>{l}</span>
         ))}
       </div>
 
-      {/* Griglia */}
       <div className="card" style={{ padding: 16 }}>
         <div className="calendario-grid">
           {GIORNI.map(g => (
@@ -124,7 +120,6 @@ export default function Calendario() {
         </div>
       </div>
 
-      {/* Lista eventi del mese */}
       <div className="card" style={{ marginTop: 20 }}>
         <h3 style={{ fontSize: 20, color: 'var(--verde-scuro)', marginBottom: 16 }}>
           Tutti gli eventi — {format(meseCorrente, 'MMMM', { locale: it })}
@@ -140,7 +135,7 @@ export default function Calendario() {
                   <th>Evento</th>
                   <th>Tipo</th>
                   <th>Luogo</th>
-                  {isDirigente && <th>Azioni</th>}
+                  {puoModificareCalendario && <th>Azioni</th>}
                 </tr>
               </thead>
               <tbody>
@@ -156,7 +151,7 @@ export default function Calendario() {
                     </td>
                     <td><span className={`cal-evento ${e.tipo}`}>{e.tipo}</span></td>
                     <td style={{ fontSize: 13 }}>{e.luogo || '—'}</td>
-                    {isDirigente && (
+                    {puoModificareCalendario && (
                       <td>
                         <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => apriEvento(e)}>
                           Dettagli
@@ -184,7 +179,7 @@ export default function Calendario() {
 }
 
 function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
-  const { isDirigente, profilo } = useAuth()
+  const { puoModificareCalendario, profilo } = useAuth()
   const [form, setForm] = useState({
     titolo: evento?.titolo || '',
     tipo: evento?.tipo || 'allenamento',
@@ -227,13 +222,13 @@ function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
 
         <div className="form-group">
           <label>Titolo</label>
-          <input value={form.titolo} onChange={e => setForm({...form, titolo: e.target.value})} />
+          <input value={form.titolo} onChange={e => setForm({...form, titolo: e.target.value})} disabled={!puoModificareCalendario} />
         </div>
 
         <div className="form-row">
           <div className="form-group">
             <label>Tipo</label>
-            <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}>
+            <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})} disabled={!puoModificareCalendario}>
               <option value="allenamento">Allenamento</option>
               <option value="partita">Partita</option>
               <option value="riunione">Riunione</option>
@@ -243,13 +238,13 @@ function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
           </div>
           <div className="form-group">
             <label>Data e ora</label>
-            <input type="datetime-local" value={form.data_inizio} onChange={e => setForm({...form, data_inizio: e.target.value})} />
+            <input type="datetime-local" value={form.data_inizio} onChange={e => setForm({...form, data_inizio: e.target.value})} disabled={!puoModificareCalendario} />
           </div>
         </div>
 
         <div className="form-group">
           <label>Luogo</label>
-          <input value={form.luogo} onChange={e => setForm({...form, luogo: e.target.value})} placeholder="Es: Campo sportivo comunale" />
+          <input value={form.luogo} onChange={e => setForm({...form, luogo: e.target.value})} placeholder="Es: Campo sportivo comunale" disabled={!puoModificareCalendario} />
         </div>
 
         {isPartita && (
@@ -257,37 +252,37 @@ function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
             <div className="form-row">
               <div className="form-group">
                 <label>Avversario</label>
-                <input value={form.avversario} onChange={e => setForm({...form, avversario: e.target.value})} />
+                <input value={form.avversario} onChange={e => setForm({...form, avversario: e.target.value})} disabled={!puoModificareCalendario} />
               </div>
               <div className="form-group">
                 <label>Casa / Trasferta</label>
-                <select value={form.casa_trasferta} onChange={e => setForm({...form, casa_trasferta: e.target.value})}>
+                <select value={form.casa_trasferta} onChange={e => setForm({...form, casa_trasferta: e.target.value})} disabled={!puoModificareCalendario}>
                   <option value="casa">Casa</option>
                   <option value="trasferta">Trasferta</option>
                 </select>
               </div>
             </div>
             <div className="form-group">
-              <label>Risultato (dopo la partita)</label>
-              <input value={form.risultato} onChange={e => setForm({...form, risultato: e.target.value})} placeholder="Es: 2-1" />
+              <label>Risultato</label>
+              <input value={form.risultato} onChange={e => setForm({...form, risultato: e.target.value})} placeholder="Es: 2-1" disabled={!puoModificareCalendario} />
             </div>
           </>
         )}
 
         <div className="form-group">
           <label>Note</label>
-          <textarea value={form.descrizione} onChange={e => setForm({...form, descrizione: e.target.value})} rows={3} />
+          <textarea value={form.descrizione} onChange={e => setForm({...form, descrizione: e.target.value})} rows={3} disabled={!puoModificareCalendario} />
         </div>
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between', marginTop: 8 }}>
           <div>
-            {!isNuovo && isDirigente && (
+            {!isNuovo && puoModificareCalendario && (
               <button className="btn btn-danger" onClick={elimina}>Elimina</button>
             )}
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-outline" onClick={onClose}>Annulla</button>
-            {isDirigente && (
+            <button className="btn btn-outline" onClick={onClose}>Chiudi</button>
+            {puoModificareCalendario && (
               <button className="btn btn-primario" onClick={salva} disabled={saving}>
                 {saving ? 'Salvataggio...' : 'Salva'}
               </button>
