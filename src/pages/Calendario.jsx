@@ -1,3 +1,4 @@
+import { inviaNotifica } from '../notifiche'
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
@@ -197,6 +198,11 @@ function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
     const payload = { ...form, creato_da: profilo.id }
     if (isNuovo) {
       await supabase.from('eventi').insert(payload)
+      await inviaNotifica({
+        titolo: `📅 Nuovo evento: ${form.titolo}`,
+        messaggio: `${form.data_inizio ? format(parseISO(form.data_inizio), 'dd/MM HH:mm') : ''} ${form.luogo ? '· ' + form.luogo : ''}`,
+        url: '/calendario'
+      })
     } else {
       await supabase.from('eventi').update(payload).eq('id', evento.id)
     }
