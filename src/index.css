@@ -505,7 +505,6 @@ tbody tr:hover { background: #f8f8f4; }
   }
 
   .nav-icon { font-size: 22px; }
-
   .sidebar-footer { display: none; }
 
   .main-content {
@@ -514,14 +513,52 @@ tbody tr:hover { background: #f8f8f4; }
     padding-bottom: 80px;
   }
 
+  /* Griglia stats 2 colonne */
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Card */
+  .card { padding: 16px; }
+
+  /* Header pagina */
+  .page-header { flex-direction: column; gap: 10px; }
+  .page-header h2 { font-size: 24px; }
+
+  /* Bottoni header full width */
+  .page-header .btn { width: 100%; justify-content: center; }
+
+  /* Tabelle scorrevoli */
+  .tabella-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 500px; }
+
+  /* Form */
   .form-row { grid-template-columns: 1fr; }
 
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
+  /* Modal full screen */
+  .modal-overlay { align-items: flex-end; }
+  .modal {
+    border-radius: 16px 16px 0 0;
+    max-height: 92vh;
+    width: 100%;
+    padding: 24px 20px;
   }
 
-  .page-header {
-    flex-direction: column;
-    gap: 12px;
-  }
+  /* Calendario */
+  .calendario-grid { gap: 2px; }
+  .cal-giorno { min-height: 56px; padding: 4px; font-size: 11px; }
+  .cal-numero { font-size: 12px; }
+  .cal-evento { font-size: 9px; padding: 1px 3px; }
+  .cal-header-giorno { font-size: 9px; padding: 4px 0; }
+
+  /* Shop griglia */
+  .shop-grid { grid-template-columns: 1fr !important; }
+
+  /* Stat card */
+  .stat-valore { font-size: 28px; }
+  .stat-valore.euro::before { font-size: 16px; }
+
+  /* Login */
+  .login-card { padding: 32px 24px; margin: 16px; }
+
+  /* Nascondi colonne tabella meno importanti su mobile */
+  .hide-mobile { display: none; }
 }
