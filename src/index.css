@@ -475,6 +475,29 @@ tbody tr:hover { background: #f8f8f4; }
     padding: 0;
     z-index: 200;
   }
+  /* Fix calendario celle fisse */
+  .calendario-grid {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+  }
+
+  .cal-giorno {
+    min-height: 56px;
+    max-height: 56px;
+    padding: 4px 2px;
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .cal-evento {
+    font-size: 8px;
+    padding: 1px 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+  }
 
   .sidebar-logo { display: none; }
 
