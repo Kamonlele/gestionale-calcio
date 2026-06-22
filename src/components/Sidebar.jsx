@@ -2,7 +2,7 @@ import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
-  const { profilo, logout, isAdmin, isCassiere, isDirigente } = useAuth()
+  const { profilo, logout, isAdmin, isCassiere, isDirigente, puoVedereFinanze } = useAuth()
 
   return (
     <>
@@ -46,7 +46,7 @@ export default function Sidebar() {
             <span>Shop</span>
           </NavLink>
 
-          {isCassiere && (
+          {puoVedereFinanze && (
             <NavLink to="/finanze" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
               <span className="nav-icon">💶</span>
               <span>Finanze</span>
