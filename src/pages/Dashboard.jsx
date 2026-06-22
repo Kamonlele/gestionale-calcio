@@ -3,25 +3,23 @@ import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { format, parseISO, isToday, isTomorrow } from 'date-fns'
 import { it } from 'date-fns/locale'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
   const { profilo, isCassiere } = useAuth()
+  const navigate = useNavigate()
   const [stats, setStats] = useState({ giocatori: 0, eventiMese: 0, saldo: 0, certInScadenza: 0 })
   const [prossimiEventi, setProssimiEventi] = useState([])
   const [compleanni, setCompleanni] = useState([])
   const [certScadenza, setCertScadenza] = useState([])
 
-  useEffect(() => {
-    caricaDati()
-  }, [])
+  useEffect(() => { caricaDati() }, [])
 
   async function caricaDati() {
-    // Giocatori attivi
     const { count: giocatori } = await supabase
       .from('profili').select('*', { count: 'exact', head: true })
       .eq('attivo', true)
 
-    // Prossimi eventi
     const oggi = new Date().toISOString()
     const { data: eventi } = await supabase
       .from('eventi').select('*')
@@ -29,7 +27,6 @@ export default function Dashboard() {
       .order('data_inizio', { ascending: true })
       .limit(5)
 
-    // Saldo cassa
     let saldo = 0
     if (isCassiere) {
       const { data: movimenti } = await supabase.from('movimenti').select('tipo, importo')
@@ -38,10 +35,7 @@ export default function Dashboard() {
       }
     }
 
-    // Compleanni del mese
     const { data: comp } = await supabase.from('compleanni_mese').select('*')
-
-    // Certificati in scadenza
     const { data: cert } = await supabase.from('certificati_in_scadenza').select('*')
 
     setStats({ giocatori: giocatori || 0, eventiMese: eventi?.length || 0, saldo, certInScadenza: cert?.length || 0 })
@@ -62,6 +56,27 @@ export default function Dashboard() {
     return icone[tipo] || '📌'
   }
 
+  const cardStyle = (color) => ({
+    background: 'var(--card)',
+    borderRadius: 'var(--radius)',
+    boxShadow: 'var(--shadow)',
+    padding: 20,
+    borderLeft: `4px solid ${color}`,
+    cursor: 'pointer',
+    transition: 'transform 0.15s, box-shadow 0.15s',
+    marginBottom: 0,
+  })
+
+  const cardHover = (e) => {
+    e.currentTarget.style.transform = 'translateY(-2px)'
+    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'
+  }
+
+  const cardLeave = (e) => {
+    e.currentTarget.style.transform = 'translateY(0)'
+    e.currentTarget.style.boxShadow = 'var(--shadow)'
+  }
+
   return (
     <div>
       <div className="page-header">
@@ -69,31 +84,59 @@ export default function Dashboard() {
         <p>Riepilogo della squadra Dopolavoro 47</p>
       </div>
 
-      {/* Stats */}
+      {/* Stats cliccabili */}
       <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Giocatori</div>
+        <div
+          style={cardStyle('var(--verde)')}
+          onClick={() => navigate('/giocatori')}
+          onMouseEnter={cardHover} onMouseLeave={cardLeave}
+        >
+          <div className="stat-label">👥 Giocatori</div>
           <div className="stat-valore">{stats.giocatori}</div>
+          <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vedi rosa →</div>
         </div>
-        <div className="stat-card oro">
-          <div className="stat-label">Prossimi eventi</div>
+
+        <div
+          style={cardStyle('var(--oro)')}
+          onClick={() => navigate('/calendario')}
+          onMouseEnter={cardHover} onMouseLeave={cardLeave}
+        >
+          <div className="stat-label">📅 Prossimi eventi</div>
           <div className="stat-valore">{stats.eventiMese}</div>
+          <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vai al calendario →</div>
         </div>
+
         {isCassiere && (
-          <div className="stat-card" style={{ borderLeftColor: stats.saldo >= 0 ? 'var(--verde)' : 'var(--rosso)' }}>
-            <div className="stat-label">Saldo Cassa</div>
-            <div className="stat-valore euro">{stats.saldo.toFixed(2)}</div>
+          <div
+            style={cardStyle(stats.saldo >= 0 ? 'var(--verde)' : 'var(--rosso)')}
+            onClick={() => navigate('/finanze')}
+            onMouseEnter={cardHover} onMouseLeave={cardLeave}
+          >
+            <div className="stat-label">💶 Saldo Cassa</div>
+            <div className="stat-valore euro" style={{ color: stats.saldo >= 0 ? 'var(--verde)' : 'var(--rosso)' }}>
+              {stats.saldo.toFixed(2)}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vai alle finanze →</div>
           </div>
         )}
-        <div className="stat-card rosso">
-          <div className="stat-label">Cert. in scadenza</div>
-          <div className="stat-valore">{stats.certInScadenza}</div>
+
+        <div
+          style={cardStyle('var(--rosso)')}
+          onClick={() => navigate('/giocatori')}
+          onMouseEnter={cardHover} onMouseLeave={cardLeave}
+        >
+          <div className="stat-label">⚠️ Cert. in scadenza</div>
+          <div className="stat-valore" style={{ color: stats.certInScadenza > 0 ? 'var(--rosso)' : 'var(--testo)' }}>
+            {stats.certInScadenza}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vedi giocatori →</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-        {/* Prossimi eventi */}
-        <div className="card">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="dashboard-grid">
+
+        {/* Prossimi eventi cliccabili */}
+        <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('/calendario')}>
           <h3 style={{ fontSize: 20, color: 'var(--verde-scuro)', marginBottom: 16 }}>📅 Prossimi eventi</h3>
           {prossimiEventi.length === 0 ? (
             <p style={{ color: 'var(--grigio)', fontSize: 14 }}>Nessun evento in programma.</p>
@@ -111,6 +154,9 @@ export default function Dashboard() {
                   <span className={`cal-evento ${e.tipo}`} style={{ fontSize: 11 }}>{e.tipo}</span>
                 </div>
               ))}
+              <div style={{ fontSize: 12, color: 'var(--verde)', fontWeight: 600, marginTop: 4 }}>
+                Vedi tutto il calendario →
+              </div>
             </div>
           )}
         </div>
@@ -123,9 +169,12 @@ export default function Dashboard() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {compleanni.map((c, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 500 }}>{c.nome} {c.cognome}</span>
-                  <span style={{ fontSize: 13, color: 'var(--grigio)' }}>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--grigio-chiaro)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 20 }}>🎂</span>
+                    <span style={{ fontWeight: 500 }}>{c.nome} {c.cognome}</span>
+                  </div>
+                  <span style={{ fontSize: 13, color: 'var(--grigio)', fontWeight: 600 }}>
                     {c.giorno}/{c.mese} — {c.prossima_eta} anni
                   </span>
                 </div>
@@ -134,9 +183,9 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Certificati in scadenza */}
+        {/* Certificati in scadenza cliccabili */}
         {certScadenza.length > 0 && (
-          <div className="card" style={{ gridColumn: '1 / -1' }}>
+          <div className="card" style={{ gridColumn: '1 / -1', cursor: 'pointer' }} onClick={() => navigate('/admin')}>
             <h3 style={{ fontSize: 20, color: 'var(--rosso)', marginBottom: 16 }}>⚠️ Certificati medici in scadenza</h3>
             <div className="tabella-wrapper">
               <table>
@@ -163,6 +212,9 @@ export default function Dashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div style={{ fontSize: 12, color: 'var(--rosso)', fontWeight: 600, marginTop: 12 }}>
+              Gestisci certificati in Amministrazione →
             </div>
           </div>
         )}
