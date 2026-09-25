@@ -20,11 +20,14 @@ async function ruoloDaToken(token) {
 }
 
 async function inviaOneSignal(payload) {
-  return fetch('https://api.onesignal.com/notifications', {
+  const res = await fetch('https://api.onesignal.com/notifications', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Key ${API_KEY}` },
     body: JSON.stringify({ app_id: APP_ID, chrome_web_icon: `${SITO}/logo.png`, ...payload })
   })
+  const risposta = await res.json().catch(() => ({}))
+  if (!res.ok || risposta.errors) console.error('OneSignal:', res.status, JSON.stringify(risposta))
+  return { ok: res.ok && !risposta.errors, destinatari: risposta.recipients ?? null, errori: risposta.errors ?? null }
 }
 
 export default async function handler(req, res) {
@@ -33,26 +36,26 @@ export default async function handler(req, res) {
 
   if (tipo === 'registrazione') {
     // Testo fisso: nessun contenuto arbitrario verso gli admin
-    await inviaOneSignal({
+    const esito = await inviaOneSignal({
       filters: [{ field: 'tag', key: 'ruolo', relation: '=', value: 'admin' }],
       headings: { en: '👤 Nuova registrazione', it: '👤 Nuova registrazione' },
       contents: { en: 'Un utente è in attesa di approvazione', it: 'Un utente è in attesa di approvazione' },
       url: `${SITO}/admin`
     })
-    return res.status(200).json({ ok: true })
+    return res.status(200).json(esito)
   }
 
   if (tipo === 'evento') {
     const token = (req.headers.authorization || '').replace('Bearer ', '')
     const ruolo = token && await ruoloDaToken(token)
     if (!RUOLI_CALENDARIO.includes(ruolo)) return res.status(403).json({ errore: 'Non autorizzato' })
-    await inviaOneSignal({
+    const esito = await inviaOneSignal({
       filters: [{ field: 'tag', key: 'approvato', relation: '=', value: 'si' }],
       headings: { en: titolo, it: titolo },
       contents: { en: messaggio, it: messaggio },
       url: `${SITO}${url.startsWith('/') ? url : '/'}`
     })
-    return res.status(200).json({ ok: true })
+    return res.status(200).json(esito)
   }
 
   res.status(400).json({ errore: 'Tipo non valido' })

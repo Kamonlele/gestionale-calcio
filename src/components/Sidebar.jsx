@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import BottoneNotifiche from './BottoneNotifiche'
 
 export default function Sidebar() {
   const { profilo, logout, isAdmin, puoVedereFinanze } = useAuth()
@@ -12,6 +13,7 @@ export default function Sidebar() {
           <span style={{ color: '#F5C800', fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 18 }}>Dopolavoro 47</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <BottoneNotifiche />
           <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>{profilo?.nome}</span>
           <button className="btn-logout" onClick={logout} style={{ padding: '6px 12px', fontSize: 12 }}>↩ Esci</button>
         </div>
@@ -65,6 +67,7 @@ export default function Sidebar() {
             <strong>{profilo?.nome} {profilo?.cognome}</strong>
             {profilo?.ruolo}
           </div>
+          <BottoneNotifiche style={{ width: '100%', marginBottom: 8 }} />
           <button className="btn-logout" onClick={logout}>↩ Esci</button>
         </div>
       </aside>
