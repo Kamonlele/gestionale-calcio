@@ -171,6 +171,31 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Staff: anche loro sono in rosa, riepilogo personale */}
+      {!isGiocatore && (
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', cursor: 'pointer', borderLeft: `3px solid ${cert.color}` }}
+          onClick={() => navigate('/giocatori')}>
+          <div style={{ flex: '1 1 200px' }}>
+            <div className="stat-label">👤 La tua scheda</div>
+            <div style={{ fontWeight: 600 }}>
+              {profilo?.nome} {profilo?.cognome}
+              <span style={{ color: 'var(--grigio)', fontWeight: 500 }}>
+                {profilo?.numero_maglia ? ` · #${profilo.numero_maglia}` : ''}{profilo?.ruolo_campo ? ` · ${profilo.ruolo_campo}` : ''}
+              </span>
+            </div>
+          </div>
+          <div style={{ flex: '1 1 200px' }}>
+            <div className="stat-label">📋 Il tuo certificato</div>
+            <div style={{ fontWeight: 700, color: cert.color }}>
+              {mioCert ? (cert.giorni < 0 ? 'Scaduto' : cert.giorni <= 30 ? 'In scadenza' : 'Valido') : 'Mancante'}
+              <span style={{ fontWeight: 500, color: 'var(--grigio)', marginLeft: 8, fontSize: 13 }}>
+                {mioCert ? format(parseISO(mioCert.data_scadenza), 'dd/MM/yyyy') : ''}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }} className="dashboard-grid">
 
         {/* Prossimi eventi */}
