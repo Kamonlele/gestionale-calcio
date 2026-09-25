@@ -22,6 +22,19 @@ export default function Login() {
     else navigate('/dashboard')
   }
 
+  async function handleRecupero(e) {
+    e.preventDefault()
+    setLoading(true)
+    setErrore('')
+    const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
+      redirectTo: `${window.location.origin}/nuova-password`
+    })
+    setLoading(false)
+    if (error) { setErrore('Invio non riuscito. Riprova tra qualche minuto.'); return }
+    setSuccesso(`Se ${form.email} è registrata, riceverai una email con il link per scegliere una nuova password.`)
+    setModalita('login')
+  }
+
   async function handleRegistrazione(e) {
     e.preventDefault()
     setLoading(true)
@@ -81,6 +94,27 @@ export default function Login() {
             </div>
             <button type="submit" className="btn btn-primario" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
               {loading ? 'Accesso in corso...' : 'Entra'}
+            </button>
+            <button type="button" onClick={() => { setModalita('recupero'); setErrore(''); setSuccesso('') }}
+              style={{ display: 'block', margin: '14px auto 0', background: 'none', border: 'none', color: 'var(--oro-testo)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              Password dimenticata?
+            </button>
+          </form>
+        ) : modalita === 'recupero' ? (
+          <form onSubmit={handleRecupero}>
+            <p style={{ fontSize: 14, color: 'var(--grigio)', marginBottom: 16 }}>
+              Inserisci la tua email: ti mandiamo un link per scegliere una nuova password.
+            </p>
+            <div className="form-group">
+              <label>Email</label>
+              <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="la-tua@email.com" required />
+            </div>
+            <button type="submit" className="btn btn-primario" style={{ width: '100%', justifyContent: 'center', marginTop: 8 }} disabled={loading}>
+              {loading ? 'Invio in corso...' : 'Invia link'}
+            </button>
+            <button type="button" onClick={() => { setModalita('login'); setErrore('') }}
+              style={{ display: 'block', margin: '14px auto 0', background: 'none', border: 'none', color: 'var(--grigio)', fontWeight: 600, fontSize: 14, cursor: 'pointer' }}>
+              ← Torna all'accesso
             </button>
           </form>
         ) : (

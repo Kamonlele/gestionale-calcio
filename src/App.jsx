@@ -8,6 +8,7 @@ import Calendario from './pages/Calendario'
 import Finanze from './pages/Finanze'
 import Admin from './pages/Admin'
 import Shop from './pages/Shop'
+import NuovaPassword from './pages/NuovaPassword'
 
 function InAttesa() {
   const { logout, profilo } = useAuth()
@@ -63,6 +64,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/nuova-password" element={<NuovaPassword />} />
         <Route path="/*" element={<AppLayout />} />
       </Routes>
     </AuthProvider>
