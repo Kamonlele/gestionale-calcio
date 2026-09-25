@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { format, parseISO } from 'date-fns'
+import ModalCertificato from '../components/ModalCertificato'
 
 export default function Giocatori() {
-  const { isAdmin, puoModificareGiocatori, profilo: profiloCorrente, ruolo } = useAuth()
+  const { isAdmin, puoModificareGiocatori, puoGestireCertificati, profilo: profiloCorrente, ruolo } = useAuth()
   const [giocatori, setGiocatori] = useState([])
   const [loading, setLoading] = useState(true)
   const [mostraModal, setMostraModal] = useState(false)
   const [giocatoreSelezionato, setGiocatoreSelezionato] = useState(null)
   const [filtro, setFiltro] = useState('')
+  const [certPer, setCertPer] = useState(null)
+  const conAzioni = puoModificareGiocatori || puoGestireCertificati
 
   useEffect(() => { caricaGiocatori() }, [])
 
@@ -42,8 +45,12 @@ export default function Giocatori() {
     `${g.nome} ${g.cognome} ${g.ruolo_campo || ''}`.toLowerCase().includes(filtro.toLowerCase())
   )
 
+  function ultimoCert(g) {
+    return [...(g.certificati_medici || [])].sort((a, b) => new Date(b.data_scadenza) - new Date(a.data_scadenza))[0]
+  }
+
   function certColore(g) {
-    const cert = g.certificati_medici?.[0]
+    const cert = ultimoCert(g)
     if (!cert) return 'var(--rosso)'
     const giorni = Math.ceil((new Date(cert.data_scadenza) - new Date()) / 86400000)
     if (giorni < 0) return 'var(--rosso)'
@@ -52,7 +59,7 @@ export default function Giocatori() {
   }
 
   function certLabel(g) {
-    const cert = g.certificati_medici?.[0]
+    const cert = ultimoCert(g)
     if (!cert) return 'Mancante'
     const giorni = Math.ceil((new Date(cert.data_scadenza) - new Date()) / 86400000)
     if (giorni < 0) return 'Scaduto'
@@ -95,7 +102,7 @@ export default function Giocatori() {
                 <th>Data nascita</th>
                 <th>Telefono</th>
                 <th>Cert. medico</th>
-                {puoModificareGiocatori && <th>Azioni</th>}
+                {conAzioni && <th>Azioni</th>}
               </tr>
             </thead>
             <tbody>
@@ -122,11 +129,20 @@ export default function Giocatori() {
                       ● {certLabel(g)}
                     </span>
                   </td>
-                  {puoModificareGiocatori && (
+                  {conAzioni && (
                     <td>
-                      <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => apriModifica(g)}>
-                        Modifica
-                      </button>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                        {puoModificareGiocatori && (
+                          <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => apriModifica(g)}>
+                            Modifica
+                          </button>
+                        )}
+                        {puoGestireCertificati && (
+                          <button className="btn btn-outline" style={{ padding: '5px 12px', fontSize: 12 }} onClick={() => setCertPer(g)}>
+                            + Certificato
+                          </button>
+                        )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -135,6 +151,14 @@ export default function Giocatori() {
           </table>
         </div>
       </div>
+
+      {certPer && (
+        <ModalCertificato
+          giocatore={certPer}
+          onClose={() => setCertPer(null)}
+          onSalva={() => { setCertPer(null); caricaGiocatori() }}
+        />
+      )}
 
       {mostraModal && (
         <ModalGiocatore

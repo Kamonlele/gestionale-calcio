@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
 import { format, parseISO } from 'date-fns'
+import ModalCertificato from '../components/ModalCertificato'
 
 export default function Admin() {
   const { isAdmin } = useAuth()
@@ -28,6 +29,11 @@ export default function Admin() {
 
   async function toggleAttivo(id, attivo) {
     await supabase.from('profili').update({ attivo: !attivo }).eq('id', id)
+    caricaUtenti()
+  }
+
+  async function togglePermessoCertificati(id, attuale) {
+    await supabase.from('profili').update({ gestisce_certificati: !attuale }).eq('id', id)
     caricaUtenti()
   }
 
@@ -133,6 +139,13 @@ export default function Admin() {
                         <option value="cassiere">cassiere</option>
                         <option value="admin">admin</option>
                       </select>
+                      {u.ruolo === 'dirigente' && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--grigio)', marginTop: 4, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!u.gestisce_certificati}
+                            onChange={() => togglePermessoCertificati(u.id, u.gestisce_certificati)} />
+                          Può inserire certificati
+                        </label>
+                      )}
                     </td>
                     <td>
                       {ultimoCert ? (
@@ -181,64 +194,6 @@ export default function Admin() {
           onSalva={() => { setMostraModalCert(false); caricaUtenti() }}
         />
       )}
-    </div>
-  )
-}
-
-function ModalCertificato({ giocatore, onClose, onSalva }) {
-  const [form, setForm] = useState({
-    data_rilascio: '',
-    data_scadenza: '',
-    tipo: 'agonistico',
-    note: '',
-  })
-  const [saving, setSaving] = useState(false)
-
-  async function salva() {
-    setSaving(true)
-    await supabase.from('certificati_medici').insert({
-      ...form,
-      giocatore_id: giocatore.id,
-    })
-    setSaving(false)
-    onSalva()
-  }
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Certificato medico — {giocatore.nome} {giocatore.cognome}</h3>
-          <button className="modal-close" onClick={onClose}>×</button>
-        </div>
-        <div className="form-row">
-          <div className="form-group">
-            <label>Data rilascio</label>
-            <input type="date" value={form.data_rilascio} onChange={e => setForm({...form, data_rilascio: e.target.value})} />
-          </div>
-          <div className="form-group">
-            <label>Data scadenza</label>
-            <input type="date" value={form.data_scadenza} onChange={e => setForm({...form, data_scadenza: e.target.value})} />
-          </div>
-        </div>
-        <div className="form-group">
-          <label>Tipo</label>
-          <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}>
-            <option value="agonistico">Agonistico</option>
-            <option value="non_agonistico">Non agonistico</option>
-          </select>
-        </div>
-        <div className="form-group">
-          <label>Note</label>
-          <textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})} rows={2} />
-        </div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-          <button className="btn btn-outline" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primario" onClick={salva} disabled={saving}>
-            {saving ? 'Salvataggio...' : 'Salva certificato'}
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
