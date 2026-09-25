@@ -49,6 +49,7 @@ export default function Login() {
 
   return (
     <div className="login-page">
+      <img src="/logo.png" alt="Dopolavoro 47" className="login-logo" />
       <div className="login-card">
         <h1>Dopolavoro 47</h1>
         <p className="sottotitolo">Gestionale della squadra</p>
@@ -58,8 +59,8 @@ export default function Login() {
           {[['login','Accedi'],['registrazione','Registrati']].map(([v, l]) => (
             <button key={v} onClick={() => { setModalita(v); setErrore(''); setSuccesso('') }}
               style={{ flex: 1, padding: '10px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14,
-                background: modalita === v ? 'var(--verde)' : 'white',
-                color: modalita === v ? 'white' : 'var(--grigio)' }}>
+                background: modalita === v ? 'var(--nero)' : 'white',
+                color: modalita === v ? 'var(--oro)' : 'var(--grigio)' }}>
               {l}
             </button>
           ))}

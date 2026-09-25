@@ -98,7 +98,7 @@ export default function Calendario() {
                 key={i}
                 className={`cal-giorno ${isToday(giorno) ? 'oggi' : ''} ${!isSameMonth(giorno, meseCorrente) ? 'altro-mese' : ''}`}
               >
-                <div className="cal-numero" style={{ color: isToday(giorno) ? 'var(--verde)' : undefined }}>
+                <div className="cal-numero" style={{ color: isToday(giorno) ? 'var(--oro-testo)' : undefined }}>
                   {format(giorno, 'd')}
                 </div>
                 {evGiorno.slice(0, 3).map(e => (

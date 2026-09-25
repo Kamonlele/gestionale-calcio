@@ -84,7 +84,7 @@ export default function Shop() {
               {prodotti.map(p => (
                 <div key={p.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
                   {/* Foto prodotto */}
-                  <div style={{ height: 200, background: 'var(--sfondo)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  <div style={{ height: 160, background: 'var(--sfondo)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {p.foto_url ? (
                       <img src={p.foto_url} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
@@ -102,7 +102,7 @@ export default function Shop() {
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                      <span style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--verde)' }}>
+                      <span style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--testo)' }}>
                         €{Number(p.prezzo).toFixed(2)}
                       </span>
                       <div style={{ display: 'flex', gap: 8 }}>
@@ -288,8 +288,8 @@ function ModalProdotto({ prodotto, profilo, onClose, onSalva }) {
               <button key={t} type="button"
                 onClick={() => toggleTaglia(t)}
                 style={{ padding: '6px 14px', borderRadius: 6, border: '1.5px solid',
-                  borderColor: form.taglie.includes(t) ? 'var(--verde)' : 'var(--grigio-chiaro)',
-                  background: form.taglie.includes(t) ? 'var(--verde)' : 'white',
+                  borderColor: form.taglie.includes(t) ? 'var(--nero)' : 'var(--grigio-chiaro)',
+                  background: form.taglie.includes(t) ? 'var(--nero)' : 'white',
                   color: form.taglie.includes(t) ? 'white' : 'var(--testo)',
                   fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
                 {t}
@@ -350,7 +350,7 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
           <div style={{ fontSize: 48 }}>{prodotto.foto_url ? <img src={prodotto.foto_url} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} /> : '👕'}</div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 16 }}>{prodotto.nome}</div>
-            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--verde)' }}>
+            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--testo)' }}>
               €{Number(prodotto.prezzo).toFixed(2)}
             </div>
           </div>
@@ -363,8 +363,8 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
               {prodotto.taglie.map(t => (
                 <button key={t} type="button" onClick={() => setTaglia(t)}
                   style={{ padding: '8px 16px', borderRadius: 6, border: '1.5px solid',
-                    borderColor: taglia === t ? 'var(--verde)' : 'var(--grigio-chiaro)',
-                    background: taglia === t ? 'var(--verde)' : 'white',
+                    borderColor: taglia === t ? 'var(--nero)' : 'var(--grigio-chiaro)',
+                    background: taglia === t ? 'var(--nero)' : 'white',
                     color: taglia === t ? 'white' : 'var(--testo)',
                     fontWeight: 700, cursor: 'pointer', fontSize: 14 }}>
                   {t}
@@ -381,7 +381,7 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
           </div>
           <div className="form-group">
             <label>Totale</label>
-            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 32, fontWeight: 700, color: 'var(--verde)', paddingTop: 8 }}>
+            <div style={{ fontFamily: 'Barlow Condensed', fontSize: 32, fontWeight: 700, color: 'var(--testo)', paddingTop: 8 }}>
               €{(Number(prodotto.prezzo) * quantita).toFixed(2)}
             </div>
           </div>

@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import BottoneNotifiche from './BottoneNotifiche'
+import Icona from './Icona'
 
 export default function Sidebar() {
   const { profilo, logout, isAdmin, puoVedereFinanze } = useAuth()
@@ -9,8 +10,8 @@ export default function Sidebar() {
     <>
       <div className="mobile-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <img src="/logo.png" alt="D47" style={{ width: 32, height: 32, objectFit: 'contain' }} />
-          <span style={{ color: '#F5C800', fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 18 }}>Dopolavoro 47</span>
+          <img src="/logo.png" alt="" style={{ width: 34, height: 34, objectFit: 'contain' }} />
+          <span style={{ color: 'var(--oro)', fontFamily: 'Barlow Condensed', fontWeight: 700, fontSize: 20, whiteSpace: 'nowrap' }}>Dopolavoro 47</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <BottoneNotifiche />
@@ -21,43 +22,43 @@ export default function Sidebar() {
 
       <aside className="sidebar">
         <div className="sidebar-logo">
-          <img src="/logo.png" alt="Dopolavoro 47" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 6 }} />
-          <h1 style={{ fontSize: 16, color: '#F5C800', lineHeight: 1.1 }}>Dopolavoro 47</h1>
+          <img src="/logo.png" alt="Dopolavoro 47" style={{ width: 64, height: 64, objectFit: 'contain', marginBottom: 12 }} />
+          <h1>Dopolavoro 47</h1>
           <span>Gestionale</span>
         </div>
 
         <nav className="sidebar-nav">
           <NavLink to="/dashboard" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">🏠</span>
+            <span className="nav-icon"><Icona nome="dashboard" /></span>
             <span>Dashboard</span>
           </NavLink>
 
           <NavLink to="/giocatori" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">👥</span>
+            <span className="nav-icon"><Icona nome="giocatori" /></span>
             <span>Giocatori</span>
           </NavLink>
 
           <NavLink to="/calendario" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">📅</span>
+            <span className="nav-icon"><Icona nome="calendario" /></span>
             <span>Calendario</span>
           </NavLink>
 
           <NavLink to="/shop" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-            <span className="nav-icon">🛍️</span>
+            <span className="nav-icon"><Icona nome="shop" /></span>
             <span>Shop</span>
           </NavLink>
 
           {puoVedereFinanze && (
             <NavLink to="/finanze" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-              <span className="nav-icon">💶</span>
+              <span className="nav-icon"><Icona nome="finanze" /></span>
               <span>Finanze</span>
             </NavLink>
           )}
 
           {isAdmin && (
             <NavLink to="/admin" className={({ isActive }) => 'nav-link' + (isActive ? ' active' : '')}>
-              <span className="nav-icon">⚙️</span>
-              <span>Amm.</span>
+              <span className="nav-icon"><Icona nome="admin" /></span>
+              <span>Admin</span>
             </NavLink>
           )}
         </nav>

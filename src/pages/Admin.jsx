@@ -55,9 +55,9 @@ export default function Admin() {
       <div className="card" style={{ marginBottom: 20 }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {[
-            ['Totale utenti', utenti.length, 'var(--verde)'],
+            ['Totale utenti', utenti.length, 'var(--testo)'],
             ['Approvati', utenti.filter(u => u.approvato).length, 'var(--verde)'],
-            ['In attesa', inAttesa.length, 'var(--oro)'],
+            ['In attesa', inAttesa.length, 'var(--oro-testo)'],
             ['Admin', utenti.filter(u => u.ruolo === 'admin').length, '#0c5460'],
           ].map(([label, val, color]) => (
             <div key={label} style={{ flex: 1, minWidth: 120, textAlign: 'center', padding: '16px 8px', background: 'var(--sfondo)', borderRadius: 8 }}>
@@ -70,7 +70,7 @@ export default function Admin() {
 
       {inAttesa.length > 0 && (
         <div className="card" style={{ marginBottom: 20, borderLeft: '4px solid var(--oro)' }}>
-          <h3 style={{ fontSize: 20, color: 'var(--oro)', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 20, color: 'var(--oro-testo)', marginBottom: 16 }}>
             ⏳ In attesa di approvazione ({inAttesa.length})
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>

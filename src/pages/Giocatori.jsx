@@ -47,7 +47,7 @@ export default function Giocatori() {
     if (!cert) return 'var(--rosso)'
     const giorni = Math.ceil((new Date(cert.data_scadenza) - new Date()) / 86400000)
     if (giorni < 0) return 'var(--rosso)'
-    if (giorni <= 30) return 'var(--oro)'
+    if (giorni <= 30) return 'var(--oro-testo)'
     return 'var(--verde)'
   }
 

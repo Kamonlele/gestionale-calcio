@@ -97,7 +97,7 @@ export default function Dashboard() {
     if (!mioCert) return { label: 'Mancante', color: 'var(--rosso)', giorni: null }
     const giorni = Math.ceil((new Date(mioCert.data_scadenza) - new Date()) / 86400000)
     if (giorni < 0) return { label: 'Scaduto', color: 'var(--rosso)', giorni }
-    if (giorni <= 30) return { label: `Scade in ${giorni} giorni`, color: 'var(--oro)', giorni }
+    if (giorni <= 30) return { label: `Scade in ${giorni} giorni`, color: 'var(--oro-testo)', giorni }
     return { label: `Valido fino al ${format(parseISO(mioCert.data_scadenza), 'dd/MM/yyyy')}`, color: 'var(--verde)', giorni }
   }
 
@@ -115,7 +115,7 @@ export default function Dashboard() {
 
         {/* BOX 1 — Giocatore vede sé stesso, altri vedono la rosa */}
         {isGiocatore ? (
-          <div style={cardStyle('var(--verde)')} onClick={() => navigate('/giocatori')} onMouseEnter={cardHover} onMouseLeave={cardLeave}>
+          <div style={cardStyle('var(--linea)')} onClick={() => navigate('/giocatori')} onMouseEnter={cardHover} onMouseLeave={cardLeave}>
             <div className="stat-label">👤 Il tuo profilo</div>
             <div style={{ fontFamily: 'Barlow Condensed', fontSize: 22, fontWeight: 700, lineHeight: 1.2, marginTop: 4 }}>
               {profilo?.nome} {profilo?.cognome}
@@ -126,7 +126,7 @@ export default function Dashboard() {
             <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vedi profilo →</div>
           </div>
         ) : (
-          <div style={cardStyle('var(--verde)')} onClick={() => navigate('/giocatori')} onMouseEnter={cardHover} onMouseLeave={cardLeave}>
+          <div style={cardStyle('var(--linea)')} onClick={() => navigate('/giocatori')} onMouseEnter={cardHover} onMouseLeave={cardLeave}>
             <div className="stat-label">👥 Giocatori</div>
             <div className="stat-valore">{stats.giocatori}</div>
             <div style={{ fontSize: 11, color: 'var(--grigio)', marginTop: 6 }}>Vedi rosa →</div>
@@ -171,7 +171,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="dashboard-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 20 }} className="dashboard-grid">
 
         {/* Prossimi eventi */}
         <div className="card" style={{ cursor: 'pointer' }} onClick={() => navigate('/calendario')}>
@@ -192,7 +192,7 @@ export default function Dashboard() {
                   <span className={`cal-evento ${e.tipo}`} style={{ fontSize: 11 }}>{e.tipo}</span>
                 </div>
               ))}
-              <div style={{ fontSize: 12, color: 'var(--verde)', fontWeight: 600, marginTop: 4 }}>
+              <div style={{ fontSize: 13, color: 'var(--oro-testo)', fontWeight: 600, marginTop: 4 }}>
                 Vedi tutto il calendario →
               </div>
             </div>
@@ -212,7 +212,7 @@ export default function Dashboard() {
                     <span style={{ fontSize: 20 }}>🎂</span>
                     <span style={{ fontWeight: 500 }}>
                       {c.nome} {c.cognome}
-                      {c.id === profilo?.id && <span style={{ fontSize: 11, color: 'var(--verde)', fontWeight: 700, marginLeft: 6 }}>sei tu! 🎉</span>}
+                      {c.id === profilo?.id && <span style={{ fontSize: 11, color: 'var(--oro-testo)', fontWeight: 700, marginLeft: 6 }}>sei tu! 🎉</span>}
                     </span>
                   </div>
                   <span style={{ fontSize: 13, color: 'var(--grigio)', fontWeight: 600 }}>
@@ -258,7 +258,7 @@ export default function Dashboard() {
                         <td>{c.tipo}</td>
                         <td>{format(parseISO(c.data_scadenza), 'dd/MM/yyyy')}</td>
                         <td>
-                          <span style={{ color: c.giorni_alla_scadenza <= 7 ? 'var(--rosso)' : 'var(--oro)', fontWeight: 600 }}>
+                          <span style={{ color: c.giorni_alla_scadenza <= 7 ? 'var(--rosso)' : 'var(--oro-testo)', fontWeight: 600 }}>
                             {c.giorni_alla_scadenza} giorni
                           </span>
                         </td>
