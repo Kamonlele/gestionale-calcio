@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../supabaseClient'
+import { notificaNuovaRegistrazione } from '../notifiche'
 
 export default function Login() {
   const { login } = useAuth()
@@ -25,24 +26,25 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setErrore('')
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
-        data: { nome: form.nome, cognome: form.cognome, ruolo: 'giocatore' }
+        data: { nome: form.nome, cognome: form.cognome, telefono: form.telefono }
       }
     })
-    if (error) { setErrore(error.message); setLoading(false) }
-    else {
-      // Aggiorna telefono se inserito
-      if (form.telefono) {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) await supabase.from('profili').update({ telefono: form.telefono }).eq('id', user.id)
-      }
-      setSuccesso('Registrazione completata! Ora puoi accedere.')
-      setModalita('login')
-      setLoading(false)
+    if (error) { setErrore(error.message); setLoading(false); return }
+
+    // Con conferma email attiva non c'è sessione: il telefono resta nei metadati
+    if (data.session && form.telefono) {
+      await supabase.from('profili').update({ telefono: form.telefono }).eq('id', data.user.id)
     }
+    notificaNuovaRegistrazione()
+    setSuccesso(data.session
+      ? 'Registrazione completata! Ora puoi accedere.'
+      : 'Registrazione completata! Controlla la tua email e clicca il link di conferma, poi accedi.')
+    setModalita('login')
+    setLoading(false)
   }
 
   return (

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { collegaOneSignal } from '../notifiche'
 
 const AuthContext = createContext({})
 
@@ -31,6 +32,7 @@ export function AuthProvider({ children }) {
       .eq('id', userId)
       .single()
     setProfilo(data)
+    collegaOneSignal(data)
     setLoading(false)
   }
 
