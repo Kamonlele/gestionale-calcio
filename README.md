@@ -1,71 +1,83 @@
 # Dopolavoro 47 — Gestionale Squadra di Calcio
 
-## Setup in 5 passi
+App web (PWA) della squadra: rosa, calendario, certificati medici, cassa e shop.
+React 18 + Vite, database e login su Supabase, hosting su Vercel, notifiche push con OneSignal.
 
-### 1. Apri la cartella in Cursor
-Trascina la cartella `gestionale-calcio` dentro Cursor.
+Online: https://gestionale-calcio-gamma.vercel.app
 
-### 2. Configura le credenziali Supabase
-Apri il file `.env.local` e sostituisci con i tuoi dati:
-```
-VITE_SUPABASE_URL=https://XXXXXXXXXXXXXXXX.supabase.co
-VITE_SUPABASE_ANON_KEY=eyXXXXXXXXXXXXXXXXX
-```
-Trovi questi valori in **Supabase → Settings → API**.
+## Avvio in locale
 
-### 3. Installa le dipendenze
-Nel terminale di Cursor:
 ```bash
 npm install
+npm run dev        # http://localhost:5173
 ```
 
-### 4. Avvia in locale
-```bash
-npm run dev
+Crea `.env.local` (non va su git):
 ```
-Apri http://localhost:5173
+VITE_SUPABASE_URL=https://<progetto>.supabase.co
+VITE_SUPABASE_ANON_KEY=<chiave anon>
+VITE_ONESIGNAL_APP_ID=<app id OneSignal>
+```
 
-### 5. Deploy su Vercel (opzionale)
-1. Vai su vercel.com e crea account gratuito
-2. Clicca "New Project" e importa la cartella
-3. Aggiungi le variabili d'ambiente (VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY)
-4. Clicca Deploy
+## Variabili su Vercel
 
----
+| Nome | Uso |
+|------|-----|
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | frontend e funzione `/api/notifica` |
+| `VITE_ONESIGNAL_APP_ID` | frontend e funzione `/api/notifica` |
+| `ONESIGNAL_API_KEY` | **solo server** (`api/notifica.js`). Mai con prefisso `VITE_`, altrimenti finisce nel browser |
 
-## Struttura dell'app
+Dopo ogni modifica alle variabili serve un Redeploy.
+
+## Struttura
 
 ```
+api/notifica.js            → invio notifiche OneSignal lato server (nuove registrazioni, eventi)
+public/OneSignalSDKWorker.js → service worker OneSignal (deve restare alla radice)
+supabase/*.sql             → modifiche al database già applicate (sicurezza, permesso certificati)
 src/
-  context/
-    AuthContext.jsx     → gestione login e ruoli
-  pages/
-    Login.jsx           → pagina di accesso
-    Dashboard.jsx       → riepilogo generale
-    Giocatori.jsx       → anagrafica squadra
-    Calendario.jsx      → eventi, partite, allenamenti
-    Finanze.jsx         → cassa, entrate e uscite
-    Admin.jsx           → gestione utenti e certificati
-  components/
-    Sidebar.jsx         → navigazione laterale
-  supabaseClient.js     → connessione Supabase
-  index.css             → stili globali
-  App.jsx               → routing principale
+  context/AuthContext.jsx  → login, ruolo e permessi
+  notifiche.jsx            → collegamento dispositivo ↔ utente (OneSignal login + tag)
+  components/              → Sidebar, Icona, BottoneNotifiche, ModalCertificato
+  pages/                   → Login, NuovaPassword, Dashboard, Giocatori, Calendario, Shop, Finanze, Admin
 ```
 
-## Ruoli utente
+## Registrazione e approvazione
 
-| Ruolo | Accesso |
-|-------|---------|
-| **giocatore** | Dashboard, Giocatori (sola lettura), Calendario |
-| **dirigente** | + Modifica giocatori, Gestione eventi |
-| **cassiere** | + Accesso finanze, Registrazione movimenti |
-| **admin** | Tutto, inclusa gestione utenti e certificati |
+1. Chi si registra parte come **giocatore non approvato** e vede solo "Account in attesa"
+2. Gli admin ricevono una notifica push "Nuova registrazione"
+3. Un admin approva l'utente dalla pagina **Admin**
 
-## Creare il primo utente Admin
+Ruolo, approvazione, stato e permessi li può cambiare **solo un admin**: il blocco è anche nel database (trigger `proteggi_campi_profilo`).
 
-1. Vai su **Supabase → Authentication → Users**
-2. Clicca "Invite user" con la tua email
-3. Accedi all'app, poi vai su **Supabase → Table Editor → profili**
-4. Trova il tuo record e cambia `ruolo` da `giocatore` a `admin`
-5. Da quel momento puoi gestire tutti gli altri utenti dall'app
+## Ruoli
+
+| | Giocatore | Dirigente | Cassiere | Presidente | Admin |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Dashboard, rosa, calendario, ordini shop | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Creare/modificare eventi (notifica a tutti) | – | ✅ | ✅ | ✅ | ✅ |
+| Modificare dati giocatori | – | – | ✅ | ✅ | ✅ |
+| Vedere le finanze | – | ✅ | ✅ | ✅ | ✅ |
+| Registrare entrate/uscite | – | – | ✅ | – | ✅ |
+| Inserire certificati medici | – | con permesso* | – | – | ✅ |
+| Prodotti shop, stato ordini | – | – | – | – | ✅ |
+| Approvare utenti, cambiare ruoli | – | – | – | – | ✅ |
+
+\* L'admin abilita i singoli dirigenti dalla pagina Admin ("Può inserire certificati").
+
+## Notifiche push
+
+- Su **iPhone** funzionano solo se l'app è aggiunta alla schermata Home (Safari → Condividi → Aggiungi alla schermata Home) e aperta dall'icona; poi si tocca **🔔 Attiva notifiche**
+- Su **Android** da Chrome: menu ⋮ → Installa app, poi **🔔 Attiva notifiche**
+- In OneSignal il Site URL deve essere esattamente `https://gestionale-calcio-gamma.vercel.app`
+
+## Email (recupero password)
+
+Supabase invia tramite **Brevo** (SMTP `smtp-relay.brevo.com:587`, mittente `dopolavorofootballclub@gmail.com`).
+Lo username SMTP è il **Login** della pagina SMTP di Brevo (`…@smtp-brevo.com`), la password è una **SMTP key**.
+In Brevo il blocco degli IP non autorizzati per le SMTP keys deve restare **disattivato** (Supabase invia da IP variabili).
+
+## Note
+
+- Piano gratuito Supabase: il progetto va in pausa dopo circa 7 giorni senza utilizzo; si riattiva dalla dashboard
+- Le foto dello shop sono caricate da `dopolavoro47.wp-234.workers.dev`
