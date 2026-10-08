@@ -8,7 +8,7 @@ export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [modalita, setModalita] = useState('login') // 'login' o 'registrazione'
-  const [form, setForm] = useState({ email: '', password: '', nome: '', cognome: '', telefono: '' })
+  const [form, setForm] = useState({ email: '', password: '', nome: '', cognome: '', telefono: '', data_nascita: '' })
   const [errore, setErrore] = useState('')
   const [successo, setSuccesso] = useState('')
   const [loading, setLoading] = useState(false)
@@ -43,7 +43,7 @@ export default function Login() {
       email: form.email,
       password: form.password,
       options: {
-        data: { nome: form.nome, cognome: form.cognome, telefono: form.telefono }
+        data: { nome: form.nome, cognome: form.cognome, telefono: form.telefono, data_nascita: form.data_nascita }
       }
     })
     if (error) { setErrore(error.message); setLoading(false); return }
@@ -132,6 +132,10 @@ export default function Login() {
             <div className="form-group">
               <label>Email</label>
               <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="la-tua@email.com" required />
+            </div>
+            <div className="form-group">
+              <label>Data di nascita</label>
+              <input type="date" value={form.data_nascita} onChange={e => setForm({...form, data_nascita: e.target.value})} max={new Date().toISOString().slice(0, 10)} required />
             </div>
             <div className="form-group">
               <label>Telefono</label>

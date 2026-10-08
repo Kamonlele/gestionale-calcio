@@ -60,6 +60,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       utente, profilo, loading, login, logout, ruolo, approvato,
+      ricaricaProfilo: () => utente && caricaProfilo(utente.id),
       isAdmin, isCassiere, isDirigente, isPresidente,
       puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze, puoGestireCertificati, puoVedereOrdini
     }}>

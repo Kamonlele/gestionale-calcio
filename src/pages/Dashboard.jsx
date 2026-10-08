@@ -6,7 +6,7 @@ import { it } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
-  const { profilo, isCassiere, puoVedereFinanze, ruolo } = useAuth()
+  const { profilo, isCassiere, puoVedereFinanze, ruolo, ricaricaProfilo } = useAuth()
   const navigate = useNavigate()
   const isGiocatore = ruolo === 'giocatore'
 
@@ -109,6 +109,8 @@ export default function Dashboard() {
         <h2>Benvenuto, {profilo?.nome}!</h2>
         <p>{isGiocatore ? 'La tua area personale' : 'Riepilogo della squadra Dopolavoro 47'}</p>
       </div>
+
+      {profilo && !profilo.data_nascita && <AvvisoDataNascita profilo={profilo} onSalvata={ricaricaProfilo} />}
 
       {/* Stats */}
       <div className="stats-grid">
@@ -300,5 +302,36 @@ export default function Dashboard() {
         )}
       </div>
     </div>
+  )
+}
+
+// Chi si è iscritto prima che la data fosse obbligatoria la completa da qui
+function AvvisoDataNascita({ profilo, onSalvata }) {
+  const [data, setData] = useState('')
+  const [errore, setErrore] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function salva(e) {
+    e.preventDefault()
+    setSaving(true)
+    setErrore('')
+    const { error } = await supabase.from('profili').update({ data_nascita: data }).eq('id', profilo.id)
+    setSaving(false)
+    if (error) { setErrore('Salvataggio non riuscito, riprova.'); return }
+    onSalvata()
+  }
+
+  return (
+    <form className="card" onSubmit={salva} style={{ borderLeft: '3px solid var(--oro)', display: 'flex', alignItems: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ flex: '1 1 220px' }}>
+        <div style={{ fontWeight: 700, marginBottom: 2 }}>🎂 Aggiungi la tua data di nascita</div>
+        <div style={{ fontSize: 13, color: 'var(--grigio)' }}>Così la squadra può farti gli auguri.</div>
+        {errore && <div style={{ fontSize: 13, color: 'var(--rosso)', marginTop: 4 }}>{errore}</div>}
+      </div>
+      <div className="form-group" style={{ marginBottom: 0, flex: '1 1 160px' }}>
+        <input type="date" value={data} onChange={e => setData(e.target.value)} max={new Date().toISOString().slice(0, 10)} required />
+      </div>
+      <button className="btn btn-primario" disabled={saving}>{saving ? 'Salvataggio...' : 'Salva'}</button>
+    </form>
   )
 }
