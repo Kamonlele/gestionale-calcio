@@ -6,11 +6,13 @@ import { it } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
+const CONTI = { conto: 'Conto', wallet: 'Wallet' }
+
 export default function Finanze() {
   const { profilo, isCassiere } = useAuth()
   const [movimenti, setMovimenti] = useState([])
   const [categorie, setCategorie] = useState([])
-  const [saldo, setSaldo] = useState({ entrate: 0, uscite: 0, totale: 0 })
+  const [saldo, setSaldo] = useState({ entrate: 0, uscite: 0, totale: 0, conto: 0, wallet: 0 })
   const [mostraModal, setMostraModal] = useState(false)
   const [mostraReport, setMostraReport] = useState(false)
   const [filtroTipo, setFiltroTipo] = useState('tutti')
@@ -30,7 +32,8 @@ export default function Finanze() {
     setCategorie(cat || [])
     const entrate = lista.filter(m => m.tipo === 'entrata').reduce((s, m) => s + Number(m.importo), 0)
     const uscite = lista.filter(m => m.tipo === 'uscita').reduce((s, m) => s + Number(m.importo), 0)
-    setSaldo({ entrate, uscite, totale: entrate - uscite })
+    const saldoDi = c => lista.filter(m => m.conto === c).reduce((s, m) => s + (m.tipo === 'entrata' ? 1 : -1) * Number(m.importo), 0)
+    setSaldo({ entrate, uscite, totale: entrate - uscite, conto: saldoDi('conto'), wallet: saldoDi('wallet') })
     setLoading(false)
   }
 
@@ -65,6 +68,9 @@ export default function Finanze() {
           <div className="stat-valore euro" style={{ color: saldo.totale >= 0 ? 'var(--verde)' : 'var(--rosso)' }}>
             {saldo.totale.toFixed(2)}
           </div>
+          <div style={{ fontSize: 12, color: 'var(--grigio)', marginTop: 8, fontVariantNumeric: 'tabular-nums' }}>
+            Conto € {saldo.conto.toFixed(2)} · Wallet € {saldo.wallet.toFixed(2)}
+          </div>
         </div>
         <div className="stat-card grigio">
           <div className="stat-label">Movimenti</div>
@@ -85,15 +91,15 @@ export default function Finanze() {
           <table>
             <thead>
               <tr>
-                <th>Data</th><th>Tipo</th><th>Descrizione</th><th>Categoria</th><th>Giocatore</th>
+                <th>Data</th><th>Tipo</th><th>Descrizione</th><th>Categoria</th><th>Conto</th><th>Giocatore</th>
                 <th style={{ textAlign: 'right' }}>Importo</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Caricamento...</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Caricamento...</td></tr>
               ) : filtrati.length === 0 ? (
-                <tr><td colSpan={6} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Nessun movimento trovato.</td></tr>
+                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Nessun movimento trovato.</td></tr>
               ) : filtrati.map(m => (
                 <tr key={m.id}>
                   <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{format(parseISO(m.data_movimento), 'dd/MM/yyyy')}</td>
@@ -106,6 +112,7 @@ export default function Finanze() {
                   </td>
                   <td style={{ fontWeight: 500 }}>{m.descrizione}</td>
                   <td style={{ fontSize: 13, color: 'var(--grigio)' }}>{m.categorie_finanziarie?.nome || '—'}</td>
+                  <td style={{ fontSize: 13 }}>{CONTI[m.conto] || '—'}</td>
                   <td style={{ fontSize: 13 }}>{m.profili ? `${m.profili.nome} ${m.profili.cognome}` : '—'}</td>
                   <td style={{ textAlign: 'right', fontWeight: 700, fontFamily: 'Barlow Condensed, sans-serif', fontSize: 18,
                     color: m.tipo === 'entrata' ? 'var(--verde)' : 'var(--rosso)' }}>
@@ -191,13 +198,13 @@ function ModalReport({ movimenti, onClose }) {
     doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('Tutti i movimenti', 14, y2)
     autoTable(doc, {
       startY: y2 + 4,
-      head: [['Data', 'Tipo', 'Descrizione', 'Categoria', 'Importo']],
+      head: [['Data', 'Tipo', 'Descrizione', 'Categoria', 'Conto', 'Importo']],
       body: movimentiFiltrati.length > 0
-        ? movimentiFiltrati.map(m => [format(parseISO(m.data_movimento), 'dd/MM/yyyy'), m.tipo === 'entrata' ? '↑ Entrata' : '↓ Uscita', m.descrizione, m.categorie_finanziarie?.nome || '—', `${m.tipo === 'entrata' ? '+' : '-'}€ ${Number(m.importo).toFixed(2)}`])
-        : [['—', '—', 'Nessun movimento nel periodo', '—', '—']],
-      styles: { fontSize: 9 }, headStyles: { fillColor: [26, 122, 60] }, columnStyles: { 4: { halign: 'right' } },
+        ? movimentiFiltrati.map(m => [format(parseISO(m.data_movimento), 'dd/MM/yyyy'), m.tipo === 'entrata' ? '↑ Entrata' : '↓ Uscita', m.descrizione, m.categorie_finanziarie?.nome || '—', CONTI[m.conto] || '—', `${m.tipo === 'entrata' ? '+' : '-'}€ ${Number(m.importo).toFixed(2)}`])
+        : [['—', '—', 'Nessun movimento nel periodo', '—', '—', '—']],
+      styles: { fontSize: 9 }, headStyles: { fillColor: [26, 122, 60] }, columnStyles: { 5: { halign: 'right' } },
       didParseCell: (data) => {
-        if (data.section === 'body' && data.column.index === 4) {
+        if (data.section === 'body' && data.column.index === 5) {
           data.cell.styles.textColor = String(data.cell.raw).startsWith('+') ? [21, 87, 36] : [114, 28, 36]
           data.cell.styles.fontStyle = 'bold'
         }
@@ -244,7 +251,7 @@ function ModalReport({ movimenti, onClose }) {
 }
 
 function ModalMovimento({ categorie, profilo, onClose, onSalva }) {
-  const [form, setForm] = useState({ tipo: 'entrata', importo: '', descrizione: '', categoria_id: '', data_movimento: format(new Date(), 'yyyy-MM-dd'), note: '' })
+  const [form, setForm] = useState({ tipo: 'entrata', conto: 'conto', importo: '', descrizione: '', categoria_id: '', data_movimento: format(new Date(), 'yyyy-MM-dd'), note: '' })
   const [saving, setSaving] = useState(false)
   const [errore, setErrore] = useState('')
   const categorieFiltrate = categorie.filter(c => c.tipo === form.tipo)
@@ -285,6 +292,13 @@ function ModalMovimento({ categorie, profilo, onClose, onSalva }) {
           <select value={form.categoria_id} onChange={e => setForm({...form, categoria_id: e.target.value})}>
             <option value="">— Seleziona categoria —</option>
             {categorieFiltrate.map(c => <option key={c.id} value={c.id}>{c.nome}</option>)}
+          </select>
+        </div>
+        <div className="form-group">
+          <label>Conto o wallet</label>
+          <select value={form.conto} onChange={e => setForm({...form, conto: e.target.value})}>
+            <option value="conto">Conto</option>
+            <option value="wallet">Wallet</option>
           </select>
         </div>
         <div className="form-group"><label>Note</label><textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})} rows={2} /></div>
