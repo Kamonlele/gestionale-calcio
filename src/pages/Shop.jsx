@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import { notificaNuovoOrdine } from '../notifiche'
 import { format, parseISO } from 'date-fns'
 
 export default function Shop() {
-  const { profilo, isAdmin } = useAuth()
+  const { profilo, isAdmin, puoVedereOrdini } = useAuth()
   const [prodotti, setProdotti] = useState([])
   const [ordini, setOrdini] = useState([])
   const [vista, setVista] = useState('shop') // 'shop' | 'ordini'
@@ -59,7 +60,7 @@ export default function Shop() {
 
       {/* Toggle shop / ordini */}
       <div style={{ display: 'flex', gap: 0, marginBottom: 24, borderRadius: 10, overflow: 'hidden', border: '1.5px solid var(--grigio-chiaro)', width: 'fit-content' }}>
-        {[['shop', '🛍️ Prodotti'], ['ordini', `📦 ${isAdmin ? 'Tutti gli ordini' : 'I miei ordini'}`]].map(([v, l]) => (
+        {[['shop', '🛍️ Prodotti'], ['ordini', `📦 ${puoVedereOrdini ? 'Tutti gli ordini' : 'I miei ordini'}`]].map(([v, l]) => (
           <button key={v} onClick={() => setVista(v)}
             style={{ padding: '10px 24px', border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: 14,
               background: vista === v ? 'var(--verde-scuro)' : 'white',
@@ -134,7 +135,7 @@ export default function Shop() {
               <thead>
                 <tr>
                   <th>Data</th>
-                  {isAdmin && <th>Giocatore</th>}
+                  {puoVedereOrdini && <th>Giocatore</th>}
                   <th>Prodotto</th>
                   <th>Taglia</th>
                   <th>Qtà</th>
@@ -144,14 +145,14 @@ export default function Shop() {
                 </tr>
               </thead>
               <tbody>
-                {(isAdmin ? tuttiOrdini : ordiniPersonali).length === 0 ? (
+                {(puoVedereOrdini ? tuttiOrdini : ordiniPersonali).length === 0 ? (
                   <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Nessun ordine trovato.</td></tr>
-                ) : (isAdmin ? tuttiOrdini : ordiniPersonali).map(o => {
+                ) : (puoVedereOrdini ? tuttiOrdini : ordiniPersonali).map(o => {
                   const c = statoColore(o.stato)
                   return (
                     <tr key={o.id}>
                       <td style={{ fontSize: 13 }}>{format(parseISO(o.creato_il), 'dd/MM/yyyy')}</td>
-                      {isAdmin && <td style={{ fontWeight: 500 }}>{o.profili?.nome} {o.profili?.cognome}</td>}
+                      {puoVedereOrdini && <td style={{ fontWeight: 500 }}>{o.profili?.nome} {o.profili?.cognome}</td>}
                       <td style={{ fontWeight: 500 }}>{o.prodotti?.nome}</td>
                       <td style={{ fontSize: 13 }}>{o.taglia || '—'}</td>
                       <td style={{ fontSize: 13 }}>{o.quantita}</td>
@@ -326,13 +327,14 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
 
   async function ordina() {
     setSaving(true)
-    await supabase.from('ordini').insert({
+    const { data } = await supabase.from('ordini').insert({
       giocatore_id: profilo.id,
       prodotto_id: prodotto.id,
       taglia: taglia || null,
       quantita,
       note: note || null,
-    })
+    }).select('id').single()
+    if (data?.id) notificaNuovoOrdine(data.id)
     setSaving(false)
     onSalva()
   }

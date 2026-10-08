@@ -195,7 +195,8 @@ function ModalEvento({ evento, isNuovo, onClose, onSalva }) {
 
   async function salva() {
     setSaving(true)
-    const payload = { ...form, creato_da: profilo.id }
+    // datetime-local non ha fuso: lo convertiamo in ISO dall'ora locale del telefono (Roma)
+    const payload = { ...form, data_inizio: form.data_inizio ? new Date(form.data_inizio).toISOString() : null, creato_da: profilo.id }
     if (isNuovo) {
       await supabase.from('eventi').insert(payload)
       await inviaNotifica({

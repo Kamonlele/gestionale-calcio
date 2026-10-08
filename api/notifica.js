@@ -6,6 +6,13 @@ const API_KEY = process.env.ONESIGNAL_API_KEY
 const SITO = 'https://gestionale-calcio-gamma.vercel.app'
 const RUOLI_CALENDARIO = ['dirigente', 'presidente', 'cassiere', 'admin']
 
+async function idDaToken(token) {
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
+  })
+  return r.ok ? (await r.json()).id : null
+}
+
 async function ruoloDaToken(token) {
   const utente = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
     headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
@@ -32,7 +39,33 @@ async function inviaOneSignal(payload) {
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
-  const { tipo, titolo, messaggio, url = '/' } = req.body || {}
+  const { tipo, titolo, messaggio, url = '/', ordineId } = req.body || {}
+  const token = (req.headers.authorization || '').replace('Bearer ', '')
+
+  if (tipo === 'ordine') {
+    const uid = token && await idDaToken(token)
+    if (!uid || !/^[0-9a-f-]{36}$/.test(ordineId || '')) return res.status(403).json({ errore: 'Non autorizzato' })
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ordini?id=eq.${ordineId}&select=giocatore_id,quantita,taglia,creato_il,prodotti(nome),profili!ordini_giocatore_id_fkey(nome,cognome)`, {
+      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
+    })
+    const [o] = r.ok ? await r.json() : []
+    // Solo il proprio ordine, appena creato: niente notifiche ripetute a comando
+    if (!o || o.giocatore_id !== uid || Date.now() - new Date(o.creato_il).getTime() > 120000) {
+      return res.status(403).json({ errore: 'Non autorizzato' })
+    }
+    const testo = `${o.profili?.nome || ''} ${o.profili?.cognome || ''} — ${o.quantita}× ${o.prodotti?.nome || 'prodotto'}${o.taglia ? ` (${o.taglia})` : ''}`.trim()
+    const esito = await inviaOneSignal({
+      filters: [
+        { field: 'tag', key: 'ruolo', relation: '=', value: 'admin' },
+        { operator: 'OR' },
+        { field: 'tag', key: 'ruolo', relation: '=', value: 'cassiere' }
+      ],
+      headings: { en: '🛍️ Nuovo ordine', it: '🛍️ Nuovo ordine' },
+      contents: { en: testo, it: testo },
+      url: `${SITO}/shop`
+    })
+    return res.status(200).json(esito)
+  }
 
   if (tipo === 'registrazione') {
     // Testo fisso: nessun contenuto arbitrario verso gli admin
@@ -46,7 +79,6 @@ export default async function handler(req, res) {
   }
 
   if (tipo === 'evento') {
-    const token = (req.headers.authorization || '').replace('Bearer ', '')
     const ruolo = token && await ruoloDaToken(token)
     if (!RUOLI_CALENDARIO.includes(ruolo)) return res.status(403).json({ errore: 'Non autorizzato' })
     const esito = await inviaOneSignal({

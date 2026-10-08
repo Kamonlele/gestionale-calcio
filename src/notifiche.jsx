@@ -21,6 +21,10 @@ export function inviaNotifica({ titolo, messaggio, url = '/' }) {
   return chiamaApi({ tipo: 'evento', titolo, messaggio, url })
 }
 
+export function notificaNuovoOrdine(ordineId) {
+  return chiamaApi({ tipo: 'ordine', ordineId })
+}
+
 export function notificaNuovaRegistrazione() {
   return chiamaApi({ tipo: 'registrazione' })
 }

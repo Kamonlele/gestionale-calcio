@@ -53,14 +53,15 @@ export function AuthProvider({ children }) {
   const isPresidente = ruolo === 'presidente' || isAdmin
   const puoModificareGiocatori = ruolo === 'presidente' || ruolo === 'cassiere' || isAdmin
   const puoModificareCalendario = ruolo === 'dirigente' || ruolo === 'presidente' || ruolo === 'cassiere' || isAdmin
-  const puoGestireCertificati = isAdmin || (ruolo === 'dirigente' && !!profilo?.gestisce_certificati)
+  const puoGestireCertificati = isAdmin || ruolo === 'cassiere' || (ruolo === 'dirigente' && !!profilo?.gestisce_certificati)
+  const puoVedereOrdini = isAdmin || ruolo === 'cassiere'
   const puoVedereFinanze = ruolo === 'cassiere' || ruolo === 'dirigente' || ruolo === 'presidente' || isAdmin
 
   return (
     <AuthContext.Provider value={{
       utente, profilo, loading, login, logout, ruolo, approvato,
       isAdmin, isCassiere, isDirigente, isPresidente,
-      puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze, puoGestireCertificati
+      puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze, puoGestireCertificati, puoVedereOrdini
     }}>
       {children}
     </AuthContext.Provider>
