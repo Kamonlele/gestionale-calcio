@@ -454,6 +454,18 @@ img[src="/logo.png"] { mix-blend-mode: lighten; }
 .cal-evento.scadenza   { background: #f9e0df; color: #8f1c20; }
 .cal-evento.riunione   { background: #f7e7b0; color: #6b4e00; }
 
+
+/* Shop: schede prodotto */
+.prodotti-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
+.prodotto-card { padding: 0; overflow: hidden; display: flex; flex-direction: column; margin-bottom: 0; }
+.prodotto-info { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
+.prodotto-nome { font-weight: 700; font-size: 17px; line-height: 1.25; margin-bottom: 4px; }
+.prodotto-descrizione { font-size: 13px; color: var(--grigio); margin-bottom: 8px; }
+.prodotto-piede { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 8px; }
+.prodotto-prezzo { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.prodotto-azioni { display: flex; gap: 8px; }
+.prodotto-azioni .btn { min-height: 38px; padding: 6px 14px; font-size: 13px; }
+
 /* ============================================================
    MOBILE
    ============================================================ */
@@ -568,6 +580,17 @@ img[src="/logo.png"] { mix-blend-mode: lighten; }
   .cal-giorno .cal-evento.riunione { background: var(--oro-scuro); }
 
   .shop-grid { grid-template-columns: 1fr !important; }
+  /* Shop: due prodotti per riga, prezzo sopra e pulsanti a tutta larghezza */
+  .prodotti-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card.prodotto-card { padding: 0; border-radius: 12px; }
+  .prodotto-info { padding: 10px 10px 12px; }
+  .prodotto-nome { font-size: 14px; }
+  .prodotto-descrizione { font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .prodotto-piede { flex-direction: column; align-items: stretch; gap: 6px; }
+  .prodotto-prezzo { font-size: 22px; }
+  .prodotto-azioni { flex-direction: column; gap: 6px; }
+  .prodotto-azioni .btn { width: 100%; min-height: 36px; padding: 6px 8px; }
+
   .dashboard-grid { grid-template-columns: minmax(0, 1fr) !important; }
 
   .login-card { padding: 32px 22px 28px; }

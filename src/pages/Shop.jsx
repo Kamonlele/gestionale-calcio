@@ -81,20 +81,20 @@ export default function Shop() {
               <p style={{ color: 'var(--grigio)' }}>Nessun prodotto disponibile al momento.</p>
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+            <div className="prodotti-grid">
               {prodotti.map(p => (
-                <div key={p.id} className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                  {/* Foto prodotto */}
-                  <div style={{ height: 160, background: 'var(--sfondo)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                <div key={p.id} className="card prodotto-card">
+                  {/* Riquadro quadrato come le foto: immagine intera, senza ritagli */}
+                  <div style={{ aspectRatio: '1 / 1', background: p.foto_url ? '#fff' : 'var(--sfondo)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {p.foto_url ? (
-                      <img src={p.foto_url} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={p.foto_url} alt={p.nome} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
                       <span style={{ fontSize: 64 }}>👕</span>
                     )}
                   </div>
-                  <div style={{ padding: 20 }}>
-                    <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>{p.nome}</div>
-                    {p.descrizione && <div style={{ fontSize: 13, color: 'var(--grigio)', marginBottom: 8 }}>{p.descrizione}</div>}
+                  <div className="prodotto-info">
+                    <div className="prodotto-nome">{p.nome}</div>
+                    {p.descrizione && <div className="prodotto-descrizione">{p.descrizione}</div>}
                     {p.taglie?.length > 0 && (
                       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
                         {p.taglie.map(t => (
@@ -102,18 +102,18 @@ export default function Shop() {
                         ))}
                       </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-                      <span style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--testo)' }}>
+                    <div className="prodotto-piede">
+                      <span className="prodotto-prezzo">
                         €{Number(p.prezzo).toFixed(2)}
                       </span>
-                      <div style={{ display: 'flex', gap: 8 }}>
+                      <div className="prodotto-azioni">
                         {isAdmin && (
-                          <button className="btn btn-outline" style={{ padding: '6px 12px', fontSize: 12 }}
+                          <button className="btn btn-outline"
                             onClick={() => { setProdottoSelezionato(p); setMostraModalProdotto(true) }}>
                             Modifica
                           </button>
                         )}
-                        <button className="btn btn-primario" style={{ padding: '6px 16px', fontSize: 13 }}
+                        <button className="btn btn-primario"
                           onClick={() => apriOrdine(p)}>
                           Ordina
                         </button>
@@ -349,7 +349,7 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
 
         {/* Riepilogo prodotto */}
         <div style={{ background: 'var(--sfondo)', borderRadius: 10, padding: 16, marginBottom: 20, display: 'flex', gap: 16, alignItems: 'center' }}>
-          <div style={{ fontSize: 48 }}>{prodotto.foto_url ? <img src={prodotto.foto_url} style={{ width: 60, height: 60, objectFit: 'cover', borderRadius: 8 }} /> : '👕'}</div>
+          <div style={{ fontSize: 48 }}>{prodotto.foto_url ? <img src={prodotto.foto_url} alt={prodotto.nome} style={{ width: 96, height: 96, objectFit: 'contain', background: '#fff', borderRadius: 8 }} /> : '👕'}</div>
           <div>
             <div style={{ fontWeight: 700, fontSize: 16 }}>{prodotto.nome}</div>
             <div style={{ fontFamily: 'Barlow Condensed', fontSize: 28, fontWeight: 700, color: 'var(--testo)' }}>
