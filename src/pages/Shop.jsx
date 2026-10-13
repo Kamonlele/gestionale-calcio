@@ -19,7 +19,7 @@ export default function Shop() {
   async function caricaDati() {
     const [{ data: prod }, { data: ord }] = await Promise.all([
       supabase.from('prodotti').select('*').eq('disponibile', true).order('creato_il', { ascending: false }),
-      supabase.from('ordini').select('*, prodotti(nome, prezzo), profili!ordini_giocatore_id_fkey(nome, cognome)').order('creato_il', { ascending: false })
+      supabase.from('ordini').select('*, prodotti(nome, prezzo), profili!ordini_giocatore_id_fkey(nome, cognome), inserito:profili!ordini_creato_da_fkey(nome, cognome)').order('creato_il', { ascending: false })
     ])
     setProdotti(prod || [])
     setOrdini(ord || [])
@@ -152,7 +152,14 @@ export default function Shop() {
                   return (
                     <tr key={o.id}>
                       <td style={{ fontSize: 13 }}>{format(parseISO(o.creato_il), 'dd/MM/yyyy')}</td>
-                      {puoVedereOrdini && <td style={{ fontWeight: 500 }}>{o.profili?.nome} {o.profili?.cognome}</td>}
+                      {puoVedereOrdini && (
+                        <td style={{ fontWeight: 500 }}>
+                          {o.profili?.nome} {o.profili?.cognome}
+                          {o.creato_da && o.creato_da !== o.giocatore_id && o.inserito && (
+                            <div style={{ fontSize: 11, color: 'var(--grigio)', fontWeight: 400 }}>inserito da {o.inserito.nome}</div>
+                          )}
+                        </td>
+                      )}
                       <td style={{ fontWeight: 500 }}>{o.prodotti?.nome}</td>
                       <td style={{ fontSize: 13 }}>{o.taglia || '—'}</td>
                       <td style={{ fontSize: 13 }}>{o.quantita}</td>
@@ -198,6 +205,7 @@ export default function Shop() {
 
       {mostraModalOrdine && prodottoSelezionato && (
         <ModalOrdine
+          perAltri={puoVedereOrdini}
           prodotto={prodottoSelezionato}
           profilo={profilo}
           onClose={() => setMostraModalOrdine(false)}
@@ -319,16 +327,24 @@ function ModalProdotto({ prodotto, profilo, onClose, onSalva }) {
 
 // ─── Modal Ordine ────────────────────────────────────────────────────────────
 
-function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
+function ModalOrdine({ prodotto, profilo, perAltri, onClose, onSalva }) {
   const [taglia, setTaglia] = useState(prodotto.taglie?.[0] || '')
   const [quantita, setQuantita] = useState(1)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [perChi, setPerChi] = useState(profilo.id)
+  const [giocatori, setGiocatori] = useState([])
+
+  useEffect(() => {
+    if (!perAltri) return
+    supabase.from('profili').select('id, nome, cognome').eq('approvato', true).eq('attivo', true).order('cognome')
+      .then(({ data }) => setGiocatori(data || []))
+  }, [perAltri])
 
   async function ordina() {
     setSaving(true)
     const { data } = await supabase.from('ordini').insert({
-      giocatore_id: profilo.id,
+      giocatore_id: perChi,
       prodotto_id: prodotto.id,
       taglia: taglia || null,
       quantita,
@@ -357,6 +373,18 @@ function ModalOrdine({ prodotto, profilo, onClose, onSalva }) {
             </div>
           </div>
         </div>
+
+        {perAltri && (
+          <div className="form-group">
+            <label>Ordine per</label>
+            <select value={perChi} onChange={e => setPerChi(e.target.value)}>
+              <option value={profilo.id}>Me ({profilo.nome} {profilo.cognome})</option>
+              {giocatori.filter(g => g.id !== profilo.id).map(g => (
+                <option key={g.id} value={g.id}>{g.cognome} {g.nome}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         {prodotto.taglie?.length > 0 && (
           <div className="form-group">
