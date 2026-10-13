@@ -5,7 +5,9 @@ import { notificaNuovoOrdine } from '../notifiche'
 import { format, parseISO } from 'date-fns'
 
 export default function Shop() {
-  const { profilo, isAdmin, puoVedereOrdini } = useAuth()
+  const { profilo, isAdmin, puoVedereOrdini, puoOrdinarePerAltri } = useAuth()
+  // Chi ordina per altri vede anche gli ordini che ha inserito, con il nome del giocatore
+  const mostraGiocatore = puoVedereOrdini || puoOrdinarePerAltri
   const [prodotti, setProdotti] = useState([])
   const [ordini, setOrdini] = useState([])
   const [vista, setVista] = useState('shop') // 'shop' | 'ordini'
@@ -31,7 +33,7 @@ export default function Shop() {
     setMostraModalOrdine(true)
   }
 
-  const ordiniPersonali = ordini.filter(o => o.giocatore_id === profilo?.id)
+  const ordiniPersonali = ordini.filter(o => o.giocatore_id === profilo?.id || o.creato_da === profilo?.id)
   const tuttiOrdini = ordini
 
   function statoColore(stato) {
@@ -135,7 +137,7 @@ export default function Shop() {
               <thead>
                 <tr>
                   <th>Data</th>
-                  {puoVedereOrdini && <th>Giocatore</th>}
+                  {mostraGiocatore && <th>Giocatore</th>}
                   <th>Prodotto</th>
                   <th>Taglia</th>
                   <th>Qtà</th>
@@ -152,7 +154,7 @@ export default function Shop() {
                   return (
                     <tr key={o.id}>
                       <td style={{ fontSize: 13 }}>{format(parseISO(o.creato_il), 'dd/MM/yyyy')}</td>
-                      {puoVedereOrdini && (
+                      {mostraGiocatore && (
                         <td style={{ fontWeight: 500 }}>
                           {o.profili?.nome} {o.profili?.cognome}
                           {o.creato_da && o.creato_da !== o.giocatore_id && o.inserito && (
@@ -208,7 +210,7 @@ export default function Shop() {
 
       {mostraModalOrdine && prodottoSelezionato && (
         <ModalOrdine
-          perAltri={puoVedereOrdini}
+          perAltri={puoOrdinarePerAltri}
           prodotto={prodottoSelezionato}
           profilo={profilo}
           onClose={() => setMostraModalOrdine(false)}

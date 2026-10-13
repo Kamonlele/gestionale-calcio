@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
   const puoModificareCalendario = ruolo === 'dirigente' || ruolo === 'presidente' || ruolo === 'cassiere' || isAdmin
   const puoGestireCertificati = isAdmin || ruolo === 'cassiere' || (ruolo === 'dirigente' && !!profilo?.gestisce_certificati)
   const puoVedereOrdini = isAdmin || ruolo === 'cassiere'
+  const puoOrdinarePerAltri = puoVedereOrdini || ruolo === 'presidente'
   const puoVedereFinanze = ruolo === 'cassiere' || ruolo === 'dirigente' || ruolo === 'presidente' || isAdmin
 
   return (
@@ -62,7 +63,7 @@ export function AuthProvider({ children }) {
       utente, profilo, loading, login, logout, ruolo, approvato,
       ricaricaProfilo: () => utente && caricaProfilo(utente.id),
       isAdmin, isCassiere, isDirigente, isPresidente,
-      puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze, puoGestireCertificati, puoVedereOrdini
+      puoModificareGiocatori, puoModificareCalendario, puoVedereFinanze, puoGestireCertificati, puoVedereOrdini, puoOrdinarePerAltri
     }}>
       {children}
     </AuthContext.Provider>
