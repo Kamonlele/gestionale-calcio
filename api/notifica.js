@@ -45,7 +45,7 @@ export default async function handler(req, res) {
   if (tipo === 'ordine') {
     const uid = token && await idDaToken(token)
     if (!uid || !/^[0-9a-f-]{36}$/.test(ordineId || '')) return res.status(403).json({ errore: 'Non autorizzato' })
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/ordini?id=eq.${ordineId}&select=giocatore_id,creato_da,quantita,taglia,creato_il,prodotti(nome),profili!ordini_giocatore_id_fkey(nome,cognome)`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ordini?id=eq.${ordineId}&select=giocatore_id,creato_da,quantita,taglia,note,creato_il,prodotti(nome),profili!ordini_giocatore_id_fkey(nome,cognome)`, {
       headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
     })
     const [o] = r.ok ? await r.json() : []
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     if (!o || (o.giocatore_id !== uid && o.creato_da !== uid) || Date.now() - new Date(o.creato_il).getTime() > 120000) {
       return res.status(403).json({ errore: 'Non autorizzato' })
     }
-    const testo = `${o.profili?.nome || ''} ${o.profili?.cognome || ''} — ${o.quantita}× ${o.prodotti?.nome || 'prodotto'}${o.taglia ? ` (${o.taglia})` : ''}`.trim()
+    const testo = `${o.profili?.nome || ''} ${o.profili?.cognome || ''} — ${o.quantita}× ${o.prodotti?.nome || 'prodotto'}${o.taglia ? ` (${o.taglia}${o.taglia === 'BABY' && o.note ? `, ${o.note.split(' — ')[0].replace('Età: ', '')}` : ''})` : ''}`.trim()
     const esito = await inviaOneSignal({
       filters: [
         { field: 'tag', key: 'ruolo', relation: '=', value: 'admin' },

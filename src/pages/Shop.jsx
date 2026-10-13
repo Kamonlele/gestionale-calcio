@@ -160,7 +160,10 @@ export default function Shop() {
                           )}
                         </td>
                       )}
-                      <td style={{ fontWeight: 500 }}>{o.prodotti?.nome}</td>
+                      <td style={{ fontWeight: 500 }}>
+                        {o.prodotti?.nome}
+                        {o.note && <div style={{ fontSize: 12, color: 'var(--grigio)', fontWeight: 400 }}>📝 {o.note}</div>}
+                      </td>
                       <td style={{ fontSize: 13 }}>{o.taglia || '—'}</td>
                       <td style={{ fontSize: 13 }}>{o.quantita}</td>
                       <td style={{ fontWeight: 700, fontFamily: 'Barlow Condensed', fontSize: 18 }}>
@@ -225,7 +228,7 @@ export default function Shop() {
 
 function ModalProdotto({ prodotto, profilo, onClose, onSalva }) {
   const isNuovo = !prodotto
-  const TAGLIE_DEFAULT = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+  const TAGLIE_DEFAULT = ['BABY', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
   const [form, setForm] = useState({
     nome: prodotto?.nome || '',
     descrizione: prodotto?.descrizione || '',
@@ -333,6 +336,9 @@ function ModalOrdine({ prodotto, profilo, perAltri, onClose, onSalva }) {
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const [perChi, setPerChi] = useState(profilo.id)
+  const [eta, setEta] = useState('')
+  const [errore, setErrore] = useState('')
+  const isBaby = taglia === 'BABY'
   const [giocatori, setGiocatori] = useState([])
 
   useEffect(() => {
@@ -342,13 +348,16 @@ function ModalOrdine({ prodotto, profilo, perAltri, onClose, onSalva }) {
   }, [perAltri])
 
   async function ordina() {
+    if (isBaby && !eta.trim()) { setErrore("Con la taglia BABY indica l'età del bambino."); return }
+    setErrore('')
     setSaving(true)
+    const noteFinali = [isBaby ? `Età: ${eta.trim()} anni` : '', note.trim()].filter(Boolean).join(' — ')
     const { data } = await supabase.from('ordini').insert({
       giocatore_id: perChi,
       prodotto_id: prodotto.id,
       taglia: taglia || null,
       quantita,
-      note: note || null,
+      note: noteFinali || null,
     }).select('id').single()
     if (data?.id) notificaNuovoOrdine(data.id)
     setSaving(false)
@@ -416,6 +425,15 @@ function ModalOrdine({ prodotto, profilo, perAltri, onClose, onSalva }) {
             </div>
           </div>
         </div>
+
+        {isBaby && (
+          <div className="form-group">
+            <label>Età del bambino</label>
+            <input type="number" min={0} max={16} inputMode="numeric" value={eta} onChange={e => setEta(e.target.value)} placeholder="Es: 6" />
+          </div>
+        )}
+
+        {errore && <div className="alert alert-danger">{errore}</div>}
 
         <div className="form-group">
           <label>Note per l'admin</label>
