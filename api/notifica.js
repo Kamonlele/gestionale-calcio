@@ -105,6 +105,32 @@ export default async function handler(req, res) {
 
   if (tipo === 'manuale') return notificaManuale(req, res, token)
 
+  if (tipo === 'annullato') {
+    const uid = token && await idDaToken(token)
+    if (!uid || !UUID.test(ordineId || '')) return res.status(403).json({ errore: 'Non autorizzato' })
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/ordini?id=eq.${ordineId}&select=giocatore_id,creato_da,stato,annullato_il,quantita,taglia,prodotti(nome),profili!ordini_giocatore_id_fkey(nome)`, {
+      headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
+    })
+    const [o] = r.ok ? await r.json() : []
+    // Solo un ordine appena annullato da chi lo possiede o l'ha inserito
+    if (!o || o.stato !== 'annullato' || !o.annullato_il || (o.giocatore_id !== uid && o.creato_da !== uid) ||
+        Date.now() - new Date(o.annullato_il).getTime() > 120000) {
+      return res.status(403).json({ errore: 'Non autorizzato' })
+    }
+    const testo = `${o.profili?.nome || ''} — ${o.quantita}× ${o.prodotti?.nome || 'prodotto'}${o.taglia ? ` (${o.taglia})` : ''}`.trim()
+    const esito = await inviaOneSignal({
+      filters: [
+        { field: 'tag', key: 'ruolo', relation: '=', value: 'admin' },
+        { operator: 'OR' },
+        { field: 'tag', key: 'ruolo', relation: '=', value: 'cassiere' }
+      ],
+      headings: { en: '❌ Ordine annullato', it: '❌ Ordine annullato' },
+      contents: { en: testo, it: testo },
+      url: `${SITO}/shop`
+    })
+    return res.status(200).json(esito)
+  }
+
   if (tipo === 'ordine') {
     const uid = token && await idDaToken(token)
     if (!uid || !/^[0-9a-f-]{36}$/.test(ordineId || '')) return res.status(403).json({ errore: 'Non autorizzato' })

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../context/AuthContext'
-import { notificaNuovoOrdine } from '../notifiche'
+import { notificaNuovoOrdine, notificaOrdineAnnullato } from '../notifiche'
 import { format, parseISO } from 'date-fns'
 
 export default function Shop() {
@@ -143,7 +143,7 @@ export default function Shop() {
                   <th>Qtà</th>
                   <th>Totale</th>
                   <th>Stato</th>
-                  {isAdmin && <th>Azioni</th>}
+                  <th>Azioni</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,6 +190,16 @@ export default function Shop() {
                           </select>
                         </td>
                       )}
+                      {!isAdmin && (
+                        <td>
+                          {o.stato === 'in_attesa' && (o.giocatore_id === profilo?.id || o.creato_da === profilo?.id) && (
+                            <button className="btn btn-outline" style={{ minHeight: 34, padding: '4px 12px', fontSize: 12, color: 'var(--rosso)' }}
+                              onClick={() => annullaOrdine(o)}>
+                              Annulla
+                            </button>
+                          )}
+                        </td>
+                      )}
                     </tr>
                   )
                 })}
@@ -219,6 +229,14 @@ export default function Shop() {
       )}
     </div>
   )
+
+  async function annullaOrdine(o) {
+    if (!confirm(`Annullare l'ordine di ${o.quantita}× ${o.prodotti?.nome || 'prodotto'}?`)) return
+    const { data: ok, error } = await supabase.rpc('annulla_ordine', { p_id: o.id })
+    if (error || !ok) { alert("Non è stato possibile annullare l'ordine: forse è già stato confermato."); caricaDati(); return }
+    notificaOrdineAnnullato(o.id)
+    caricaDati()
+  }
 
   async function cambiaStato(id, stato) {
     await supabase.from('ordini').update({ stato }).eq('id', id)

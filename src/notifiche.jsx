@@ -37,6 +37,10 @@ export async function inviaNotificaManuale(dati) {
   }
 }
 
+export function notificaOrdineAnnullato(ordineId) {
+  return chiamaApi({ tipo: 'annullato', ordineId })
+}
+
 export function notificaNuovoOrdine(ordineId) {
   return chiamaApi({ tipo: 'ordine', ordineId })
 }
