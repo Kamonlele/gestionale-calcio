@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   const oggi = oggiRoma()
   const bisestile = oggi.anno % 4 === 0 && (oggi.anno % 100 !== 0 || oggi.anno % 400 === 0)
 
-  const r = await db('profili?select=nome,cognome,data_nascita&approvato=eq.true&attivo=eq.true&data_nascita=not.is.null')
+  const r = await db('profili?select=nome,data_nascita&approvato=eq.true&attivo=eq.true&data_nascita=not.is.null')
   const festeggiati = (await r.json()).filter(p => {
     const [, m, g] = p.data_nascita.split('-').map(Number)
     // Nati il 29/02: negli anni non bisestili si festeggia il 28/02
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   if (reg.status === 409) return res.status(200).json({ ok: true, giaInviata: true })
   if (!reg.ok) return res.status(500).json({ errore: 'Registro non disponibile' })
 
-  const nomi = festeggiati.map(p => `${p.nome} ${p.cognome}`)
+  const nomi = festeggiati.map(p => p.nome.trim())
   const elenco = nomi.length === 1 ? nomi[0] : `${nomi.slice(0, -1).join(', ')} e ${nomi.at(-1)}`
   const testo = `Oggi è il compleanno di ${elenco}! Fate gli auguri 🎉`
 
