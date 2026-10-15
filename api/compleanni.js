@@ -36,7 +36,7 @@ export default async function handler(req, res) {
 
   const nomi = festeggiati.map(p => p.nome.trim())
   const elenco = nomi.length === 1 ? nomi[0] : `${nomi.slice(0, -1).join(', ')} e ${nomi.at(-1)}`
-  const testo = `Oggi è il compleanno di ${elenco}! Fate gli auguri 🎉`
+  const testo = `Oggi è il compleanno di ${elenco}! 🎉`
 
   const invio = await fetch('https://api.onesignal.com/notifications', {
     method: 'POST',
