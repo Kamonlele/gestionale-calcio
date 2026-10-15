@@ -5,6 +5,10 @@ const APP_ID = process.env.VITE_ONESIGNAL_APP_ID
 const API_KEY = process.env.ONESIGNAL_API_KEY
 const SITO = 'https://gestionale-calcio-gamma.vercel.app'
 const RUOLI_CALENDARIO = ['dirigente', 'presidente', 'cassiere', 'admin']
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const RUOLI = ['giocatore', 'dirigente', 'cassiere', 'presidente', 'admin']
+const PAGINE = ['/dashboard', '/calendario', '/shop', '/giocatori', '/finanze']
+const UUID = /^[0-9a-f-]{36}$/
 
 async function idDaToken(token) {
   const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -37,10 +41,69 @@ async function inviaOneSignal(payload) {
   return { ok: res.ok && !risposta.errors, destinatari: risposta.recipients ?? null, errori: risposta.errors ?? null }
 }
 
+// Profilo di chi chiama, letto con il suo token (valgono le regole del database)
+async function profiloDaToken(token) {
+  const uid = await idDaToken(token)
+  if (!uid) return null
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/profili?select=id,nome,cognome,ruolo,approvato,invia_notifiche&id=eq.${uid}`, {
+    headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` }
+  })
+  const [p] = r.ok ? await r.json() : []
+  return p?.approvato ? p : null
+}
+
+const puoInviare = p => p && (['admin', 'cassiere'].includes(p.ruolo) || (p.ruolo === 'dirigente' && p.invia_notifiche))
+
+const db = (path, init = {}) => fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  ...init,
+  headers: { apikey: SERVICE_KEY, Authorization: `Bearer ${SERVICE_KEY}`, 'Content-Type': 'application/json', ...init.headers }
+})
+
+// Notifica scritta a mano dallo staff: a tutti, a uno o più ruoli, o a giocatori scelti
+async function notificaManuale(req, res, token) {
+  const mittente = token && await profiloDaToken(token)
+  if (!puoInviare(mittente)) return res.status(403).json({ errore: 'Non autorizzato' })
+
+  const { titolo = '', messaggio = '', pagina = '/dashboard', destinatari = {} } = req.body || {}
+  const t = String(titolo).trim().slice(0, 60)
+  const m = String(messaggio).trim().slice(0, 300)
+  if (!t || !m) return res.status(400).json({ errore: 'Titolo e messaggio sono obbligatori' })
+  const url = `${SITO}${PAGINE.includes(pagina) ? pagina : '/dashboard'}`
+
+  let target, descrizione
+  if (destinatari.tipo === 'ruoli') {
+    const ruoli = (destinatari.ruoli || []).filter(r => RUOLI.includes(r))
+    if (!ruoli.length) return res.status(400).json({ errore: 'Scegli almeno un ruolo' })
+    target = { filters: ruoli.flatMap((r, i) => [...(i ? [{ operator: 'OR' }] : []), { field: 'tag', key: 'ruolo', relation: '=', value: r }]) }
+    descrizione = `Ruoli: ${ruoli.join(', ')}`
+  } else if (destinatari.tipo === 'giocatori') {
+    const ids = [...new Set((destinatari.ids || []).filter(id => UUID.test(id)))].slice(0, 200)
+    if (!ids.length) return res.status(400).json({ errore: 'Scegli almeno un giocatore' })
+    target = { include_aliases: { external_id: ids }, target_channel: 'push' }
+    const r = await db(`profili?select=nome,cognome&id=in.(${ids.join(',')})`)
+    const nomi = r.ok ? (await r.json()).map(p => `${p.nome} ${p.cognome}`.trim()) : []
+    descrizione = `${ids.length} giocator${ids.length === 1 ? 'e' : 'i'}: ${nomi.join(', ')}`
+  } else {
+    target = { filters: [{ field: 'tag', key: 'approvato', relation: '=', value: 'si' }] }
+    descrizione = 'Tutta la squadra'
+  }
+
+  const esito = await inviaOneSignal({ ...target, headings: { en: t, it: t }, contents: { en: m, it: m }, url })
+  if (SERVICE_KEY) {
+    await db('notifiche_inviate', {
+      method: 'POST',
+      body: JSON.stringify({ titolo: t, messaggio: m, pagina, destinatari: descrizione, inviato_da: mittente.id, ok: esito.ok })
+    })
+  }
+  return res.status(200).json(esito)
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
   const { tipo, titolo, messaggio, url = '/', ordineId } = req.body || {}
   const token = (req.headers.authorization || '').replace('Bearer ', '')
+
+  if (tipo === 'manuale') return notificaManuale(req, res, token)
 
   if (tipo === 'ordine') {
     const uid = token && await idDaToken(token)

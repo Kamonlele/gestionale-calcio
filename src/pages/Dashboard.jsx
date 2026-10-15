@@ -6,7 +6,7 @@ import { it } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
-  const { profilo, isCassiere, puoVedereFinanze, ruolo, ricaricaProfilo } = useAuth()
+  const { profilo, isCassiere, puoVedereFinanze, ruolo, ricaricaProfilo, puoInviareNotifiche } = useAuth()
   const navigate = useNavigate()
   const isGiocatore = ruolo === 'giocatore'
 
@@ -111,6 +111,12 @@ export default function Dashboard() {
       </div>
 
       {profilo && !profilo.data_nascita && <AvvisoDataNascita profilo={profilo} onSalvata={ricaricaProfilo} />}
+
+      {puoInviareNotifiche && (
+        <button className="btn btn-outline" style={{ width: '100%', marginBottom: 20, justifyContent: 'center' }} onClick={() => navigate('/notifiche')}>
+          📣 Invia una notifica alla squadra
+        </button>
+      )}
 
       {/* Stats */}
       <div className="stats-grid">

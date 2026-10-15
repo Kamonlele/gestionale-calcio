@@ -21,6 +21,22 @@ export function inviaNotifica({ titolo, messaggio, url = '/' }) {
   return chiamaApi({ tipo: 'evento', titolo, messaggio, url })
 }
 
+// Notifica scritta a mano dallo staff: restituisce l'esito di OneSignal
+export async function inviaNotificaManuale(dati) {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    const r = await fetch('/api/notifica', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ tipo: 'manuale', ...dati })
+    })
+    return await r.json()
+  } catch (err) {
+    console.error('Errore notifica:', err)
+    return { ok: false }
+  }
+}
+
 export function notificaNuovoOrdine(ordineId) {
   return chiamaApi({ tipo: 'ordine', ordineId })
 }

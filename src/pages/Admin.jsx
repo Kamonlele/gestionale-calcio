@@ -32,6 +32,11 @@ export default function Admin() {
     caricaUtenti()
   }
 
+  async function togglePermessoNotifiche(id, attuale) {
+    await supabase.from('profili').update({ invia_notifiche: !attuale }).eq('id', id)
+    caricaUtenti()
+  }
+
   async function togglePermessoCertificati(id, attuale) {
     await supabase.from('profili').update({ gestisce_certificati: !attuale }).eq('id', id)
     caricaUtenti()
@@ -144,6 +149,13 @@ export default function Admin() {
                           <input type="checkbox" checked={!!u.gestisce_certificati}
                             onChange={() => togglePermessoCertificati(u.id, u.gestisce_certificati)} />
                           Può inserire certificati
+                        </label>
+                      )}
+                      {u.ruolo === 'dirigente' && (
+                        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--grigio)', marginTop: 4, cursor: 'pointer' }}>
+                          <input type="checkbox" checked={!!u.invia_notifiche}
+                            onChange={() => togglePermessoNotifiche(u.id, u.invia_notifiche)} />
+                          Può inviare notifiche
                         </label>
                       )}
                     </td>

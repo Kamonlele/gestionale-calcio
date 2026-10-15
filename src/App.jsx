@@ -9,6 +9,7 @@ import Finanze from './pages/Finanze'
 import Admin from './pages/Admin'
 import Shop from './pages/Shop'
 import NuovaPassword from './pages/NuovaPassword'
+import Notifiche from './pages/Notifiche'
 
 function InAttesa() {
   const { logout, profilo } = useAuth()
@@ -52,6 +53,7 @@ function AppLayout() {
           <Route path="/shop" element={<Shop />} />
           <Route path="/finanze" element={<Finanze />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/notifiche" element={<Notifiche />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </main>
