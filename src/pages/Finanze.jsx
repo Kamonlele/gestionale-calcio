@@ -14,6 +14,7 @@ export default function Finanze() {
   const [categorie, setCategorie] = useState([])
   const [saldo, setSaldo] = useState({ entrate: 0, uscite: 0, totale: 0, conto: 0, wallet: 0 })
   const [mostraModal, setMostraModal] = useState(false)
+  const [daModificare, setDaModificare] = useState(null)
   const [mostraReport, setMostraReport] = useState(false)
   const [filtroTipo, setFiltroTipo] = useState('tutti')
   const [loading, setLoading] = useState(true)
@@ -49,7 +50,7 @@ export default function Finanze() {
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={() => setMostraReport(true)}>📄 Report PDF</button>
           {isCassiere && (
-            <button className="btn btn-primario" onClick={() => setMostraModal(true)}>+ Registra movimento</button>
+            <button className="btn btn-primario" onClick={() => { setDaModificare(null); setMostraModal(true) }}>+ Registra movimento</button>
           )}
         </div>
       </div>
@@ -93,13 +94,14 @@ export default function Finanze() {
               <tr>
                 <th>Data</th><th>Tipo</th><th>Descrizione</th><th>Categoria</th><th>Conto</th><th>Giocatore</th>
                 <th style={{ textAlign: 'right' }}>Importo</th>
+                {isCassiere && <th></th>}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Caricamento...</td></tr>
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Caricamento...</td></tr>
               ) : filtrati.length === 0 ? (
-                <tr><td colSpan={7} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Nessun movimento trovato.</td></tr>
+                <tr><td colSpan={8} style={{ textAlign: 'center', padding: 32, color: 'var(--grigio)' }}>Nessun movimento trovato.</td></tr>
               ) : filtrati.map(m => (
                 <tr key={m.id}>
                   <td style={{ fontSize: 13, whiteSpace: 'nowrap' }}>{format(parseISO(m.data_movimento), 'dd/MM/yyyy')}</td>
@@ -118,6 +120,14 @@ export default function Finanze() {
                     color: m.tipo === 'entrata' ? 'var(--verde)' : 'var(--rosso)' }}>
                     {m.tipo === 'entrata' ? '+' : '-'}€{Number(m.importo).toFixed(2)}
                   </td>
+                  {isCassiere && (
+                    <td style={{ textAlign: 'right' }}>
+                      <button className="btn btn-outline" style={{ minHeight: 34, padding: '4px 12px', fontSize: 12 }}
+                        onClick={() => { setDaModificare(m); setMostraModal(true) }}>
+                        Modifica
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -125,7 +135,7 @@ export default function Finanze() {
         </div>
       </div>
 
-      {mostraModal && <ModalMovimento categorie={categorie} profilo={profilo} onClose={() => setMostraModal(false)} onSalva={() => { setMostraModal(false); caricaDati() }} />}
+      {mostraModal && <ModalMovimento movimento={daModificare} categorie={categorie} profilo={profilo} onClose={() => setMostraModal(false)} onSalva={() => { setMostraModal(false); caricaDati() }} />}
       {mostraReport && <ModalReport movimenti={movimenti} onClose={() => setMostraReport(false)} />}
     </div>
   )
@@ -250,25 +260,43 @@ function ModalReport({ movimenti, onClose }) {
   )
 }
 
-function ModalMovimento({ categorie, profilo, onClose, onSalva }) {
-  const [form, setForm] = useState({ tipo: 'entrata', conto: 'conto', importo: '', descrizione: '', categoria_id: '', data_movimento: format(new Date(), 'yyyy-MM-dd'), note: '' })
+function ModalMovimento({ movimento, categorie, profilo, onClose, onSalva }) {
+  const [form, setForm] = useState(movimento ? {
+    tipo: movimento.tipo, conto: movimento.conto || '', importo: String(movimento.importo), descrizione: movimento.descrizione || '',
+    categoria_id: movimento.categoria_id || '', data_movimento: movimento.data_movimento, note: movimento.note || ''
+  } : { tipo: 'entrata', conto: '', importo: '', descrizione: '', categoria_id: '', data_movimento: format(new Date(), 'yyyy-MM-dd'), note: '' })
   const [saving, setSaving] = useState(false)
   const [errore, setErrore] = useState('')
   const categorieFiltrate = categorie.filter(c => c.tipo === form.tipo)
 
   async function salva() {
     if (!form.importo || !form.descrizione) { setErrore('Importo e descrizione sono obbligatori.'); return }
+    if (!form.conto) { setErrore('Scegli se il movimento è sul Conto o sul Wallet.'); return }
     setSaving(true)
-    const { error } = await supabase.from('movimenti').insert({ ...form, importo: parseFloat(form.importo), categoria_id: form.categoria_id || null, registrato_da: profilo.id })
+    const dati = {
+      tipo: form.tipo, conto: form.conto, importo: parseFloat(String(form.importo).replace(',', '.')), descrizione: form.descrizione,
+      categoria_id: form.categoria_id || null, data_movimento: form.data_movimento, note: form.note || null
+    }
+    const { error } = movimento
+      ? await supabase.from('movimenti').update(dati).eq('id', movimento.id)
+      : await supabase.from('movimenti').insert({ ...dati, registrato_da: profilo.id })
     if (error) { setErrore(error.message); setSaving(false); return }
     setSaving(false); onSalva()
+  }
+
+  async function elimina() {
+    if (!confirm(`Eliminare il movimento "${movimento.descrizione}" di € ${Number(movimento.importo).toFixed(2)}?`)) return
+    setSaving(true)
+    const { error } = await supabase.from('movimenti').delete().eq('id', movimento.id)
+    if (error) { setErrore(error.message); setSaving(false); return }
+    onSalva()
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Registra movimento</h3>
+          <h3>{movimento ? 'Modifica movimento' : 'Registra movimento'}</h3>
           <button className="modal-close" onClick={onClose}>×</button>
         </div>
         {errore && <div className="alert alert-danger">{errore}</div>}
@@ -295,16 +323,21 @@ function ModalMovimento({ categorie, profilo, onClose, onSalva }) {
           </select>
         </div>
         <div className="form-group">
-          <label>Conto o wallet</label>
-          <select value={form.conto} onChange={e => setForm({...form, conto: e.target.value})}>
-            <option value="conto">Conto</option>
-            <option value="wallet">Wallet</option>
-          </select>
+          <label>Dove: conto o wallet?</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[['conto', '🏦 Conto'], ['wallet', '👛 Wallet']].map(([v, l]) => (
+              <button key={v} type="button" className={`btn ${form.conto === v ? 'btn-primario' : 'btn-outline'}`} style={{ flex: 1 }}
+                onClick={() => setForm({ ...form, conto: v })}>{l}</button>
+            ))}
+          </div>
         </div>
         <div className="form-group"><label>Note</label><textarea value={form.note} onChange={e => setForm({...form, note: e.target.value})} rows={2} /></div>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8 }}>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 8, flexWrap: 'wrap' }}>
+          {movimento && (
+            <button className="btn btn-outline" style={{ color: 'var(--rosso)', marginRight: 'auto' }} onClick={elimina} disabled={saving}>Elimina</button>
+          )}
           <button className="btn btn-outline" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primario" onClick={salva} disabled={saving}>{saving ? 'Salvataggio...' : 'Registra'}</button>
+          <button className="btn btn-primario" onClick={salva} disabled={saving}>{saving ? 'Salvataggio...' : movimento ? 'Salva modifiche' : 'Registra'}</button>
         </div>
       </div>
     </div>
